@@ -184,12 +184,6 @@ App.Adapter = DS.DRF2Adapter.extend({
     }
 });
 
-// Assigning plurals for model properties doesn't seem to work with extend, it does this way:
-App.Adapter.configure("plurals", {
-    "address": "addresses",
-    "favourite_country" : "favourite_countries"
-});
-
 App.ApplicationController = Ember.Controller.extend({
     needs: ['currentUser'],
     display_message: false,

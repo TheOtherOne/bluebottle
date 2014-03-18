@@ -196,10 +196,14 @@ App.MyProjectBudgetRoute = App.MyProjectSubRoute.extend({
 });
 
 App.MyProjectOrganisationRoute = Em.Route.extend({
+    init: function () {
+      this._super();
+
+      console.log("+++++++++ Initialising route for org");      
+    },
+
     // Load the Organization
     setupController: function(controller, model) {
-        console.log("++++++++++ Setup Org Route");
-
         var project = this.modelFor('myProject');
 
         if (project.get('organization')) {
@@ -207,6 +211,12 @@ App.MyProjectOrganisationRoute = Em.Route.extend({
         } else if (!controller.get('model')) {
             controller.set('model', App.MyOrganization.createRecord());
         }
+
+        console.log("+++++++++ Setup route for org");
+    },
+
+    enter: function () {
+      console.log("+++++++++ Entering route for org");
     },
 
     exit: function() {
