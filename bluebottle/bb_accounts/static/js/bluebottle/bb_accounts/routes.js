@@ -126,7 +126,7 @@ App.UserOrdersRoute = Em.Route.extend({
         this.controllerFor('userOrders').stopEditing();
     },
 
-    events: {
+    actions: {
         viewRecurringOrder: function() {
             var controller = this.controllerFor('currentOrder');
             controller.set('donationType', 'monthly');
@@ -171,7 +171,7 @@ App.UserActivateRoute = Em.Route.extend({
         });
     },
 
-    events: {
+    actions: {
         error: function (reason, transition) {
             this.controllerFor('application').setProperties({
                 display_message: true,
