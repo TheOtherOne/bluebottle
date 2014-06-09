@@ -1,95 +1,122 @@
+App.MyProjectOrganisationController = App.StandardTabController.extend({
+    needs: ['myProject'],
 
-App.MyProjectOrganisationController = Em.ObjectController.extend({
+    tempDocuments: Em.A(),
+    organizations: Em.A(),
+    selectedOrganization: null,
+    
     previousStep: 'myProject.story',
-    nextStep: 'myProject.submit',
+    nextStep: 'myProject.bank',
 
-    shouldSave: function(){
-        // Determine if any part is dirty, project plan, org or any of the org addresses
-        if (this.get('isDirty')) {
-            return true;
-        }
-        if (this.get('organization.isDirty')) {
-            return true;
-        }
+    // Before the organisation is saved the documents will
+    // be temporarily stored in the tempDocuments array.
+    attachedDocuments: function () {
+        if (this.get('model.isNew'))
+            return this.get('tempDocuments');
+        else
+            return this.get('model.documents');
+    }.property('model.documents.length', 'tempDocuments.length'),
 
-        return false;
-    }.property('organization.isLoaded'),
+    hasSelectableOrganizations: function () {
+        return this.get('selectableOrganizations.length') > 0;
+    }.property('selectableOrganizations.length'),
+
+    hasOneSelectableOrganization: function () {
+        return this.get('selectableOrganizations.length') == 1;
+    }.property('selectableOrganizations.length'),
+
+    firstSelectableOrganization: function () {
+        if (this.get('hasSelectableOrganizations')) {
+            return this.get('selectableOrganizations.0');          
+        }
+    }.property('hasSelectableOrganizations'),
+
+    isPhasePlanNew: function () {
+        return this.get('controllers.myProject.model.isPhasePlanNew');
+    }.property('controllers.myProject.model.isPhasePlanNew'),
+
+    canSave: function () {
+        var name = this.get('model.name');
+        return (name && name.length > 0);
+    }.property('model.name'),
+
+    selectableOrganizations: function() {
+        return this.get('organizations').filterProperty('isNew', false);
+    }.property('organizations.@each.isNew'),
+
+    setOrganization: function () {
+        // Only set the actual organization when the selected one is an already saved org
+        var selected = this.get('selectedOrganization');
+
+        if (!selected.get('isNew'))
+            this.set('model', selected);
+    }.observes('selectedOrganization'),
 
     actions: {
-        goToStep: function(step){
-            $("body").animate({ scrollTop: 0 }, 600);
-
-            var controller = this;
-            var organization = this.get('model');
-
-            if (!organization.get('isDirty')) {
-                if (step) controller.transitionToRoute(step);
-            }
-
-            organization.one('becameInvalid', function(record) {
-                // Ember-data currently has no clear way of dealing with the state
-                // loaded.created.invalid on server side validation, so we transition
-                // to the uncommitted state to allow resubmission
-                if (record.get('isNew')) {
-                    record.transitionTo('loaded.created.uncommitted');
-                } else {
-                    record.transitionTo('loaded.updated.uncommitted');
-                }
-            });
-
-            if  (organization.get('isNew')) {
-                organization.one('didCreate', function(){
-                    Ember.run.next(function() {
-                        organization.get('documents').forEach(function(doc){
-                            console.log('saving document...');
-                            doc.save();
-                        });
-
-                        if (step) controller.transitionToRoute(step);
-                    });
-
-                });
-            } else {
-                organization.one('didUpdate', function(){
-                    if (step) controller.transitionToRoute(step);
-                });
-            }
-
-            organization.set('errors', {});
-            organization.save();
+        setFirstSelectableOrganization: function () {
+            this.set('selectedOrganization', this.get('firstSelectableOrganization'));
         },
 
-
-        goToPreviousStep: function(){
-            var step = this.get('previousStep');
-            this.send('goToStep', step);
+        newOrganization: function () {
+            // Only create a new org if the current one isn't new
+            if (!this.get('model.isNew'))
+              this.set('model', App.MyOrganization.createRecord());
         },
 
-        goToNextStep: function(){
-            var step = this.get('nextStep');
-            this.send('goToStep', step);
-        },
         removeFile: function(doc) {
             var transaction = this.get('model').transaction;
             transaction.add(doc);
             doc.deleteRecord();
             transaction.commit();
-        },
-
-        save: function() {
-            $("body").animate({ scrollTop: 0 }, 600);
-            var model = this.get('model');
-
-            model.set('errors', {});
-            model.save();
-        },
-
-        rollback: function() {
-            $("body").animate({ scrollTop: 0 }, 600);
-            var organization = this.get('model');
-            organization.rollback();
         }
+    },
 
+    saveData: function(){
+        var controller = this;
+
+        return new Ember.RSVP.Promise(function(resolve, reject) {
+            $("body").animate({ scrollTop: 0 }, 600);
+
+            var organization = controller.get('model'),
+                project = controller.get('controllers.myProject.model'),
+                timer;
+
+            if (!organization.get('isDirty')) {
+                resolve(gettext('Model is not dirty.'));
+                return;
+            }
+
+            if (organization.get('isNew')) {
+                organization.one('didCreate', function(){
+                    Ember.run.next(function() {
+                        // Now that the org is saved we can save the documents too.
+                        controller.get('tempDocuments').forEach(function(doc){
+                            doc.save();
+                            organization.get('documents').addObject(doc);
+                        });
+
+                        clearTimeout(timer);
+                        resolve(gettext('Model saved successfully.'));
+                    });
+
+                });
+            } else {
+                organization.one('didUpdate', function() {
+                    clearTimeout(timer);
+                    resolve(gettext('Model saved successfully.'));
+                });
+            }
+
+            organization.set('errors', {});
+            organization.save();
+
+            // TODO: ugly hack until we start using Ember Data 1.0+ with it's
+            //       save/find... thenable niceties
+            timer = setTimeout( function () {
+                // should never get here - didCreate, becameInvalid etc events should be triggered.
+                reject(gettext('Hey! What are you doing here? Saving model failed.'));
+            }, 10 * 1000);
+        });
     },
 
     addFile: function(file) {
@@ -97,49 +124,60 @@ App.MyProjectOrganisationController = Em.ObjectController.extend({
         var doc = store.createRecord(App.MyOrganizationDocument);
         doc.set('file', file);
         var organization = this.get('model');
-        doc.set('organization', organization);
         // If the organization is already saved we can save the doc right away
         if (organization.get('id')) {
-            console.log('saving document...');
+            doc.set('organization', organization);
             doc.save();
+        } else {
+            this.get('tempDocuments').addObject(doc);
         }
     }
 });
 
-App.MyProjectBankController = Em.ObjectController.extend(App.Editable, {
+App.MyProjectBankController = App.StandardTabController.extend({
+    needs: ['myProject'],
 
+	init: function () {
+		this._super();
+		if (this.get('model.validEuropeanBankOrganization')){
+			this.set('inEurope', true);
+		} else {
+            if (this.get('model.account_number')){
+                this.set('inEurope', false);
+            } else {
+    			this.set('inEurope', true);
+            }
+		}
+	},
+    previousStep: "myProject.organisation",
     nextStep: 'myProject.submit',
 
-    shouldSave: function(){
-        // Determine if any part is dirty, project plan, org or any of the org addresses
-        if (this.get('isDirty')) {
-            return true;
+    isPhasePlanNew: function () {
+        return this.get('controllers.myProject.model.isPhasePlanNew');
+    }.property('controllers.myProject.model.isPhasePlanNew'),
+
+	setInEurope: function () {
+		if (this.get('model.validEuropeanBankOrganization')){
+			this.set('inEurope', true);
+		} else {
+            if (this.get('model.account_number')){
+                this.set('inEurope', false);
+            } else {
+    			this.set('inEurope', true);
+            }
         }
-        if (this.get('organization.isDirty')) {
-            return true;
-        }
-        return false;
-    }.property('organization.isLoaded', 'isDirty'),
+	}.observes('model.validBankAccountInfo'),
 
     actions: {
-        updateRecordOnServer: function(){
-            var controller = this;
-            var model = this.get('model.organization');
-            model.one('becameInvalid', function(record){
-                model.set('errors', record.get('errors'));
-            });
-            model.one('didUpdate', function(){
-                controller.transitionToRoute(controller.get('nextStep'));
-                window.scrollTo(0);
-            });
-            model.one('didCreate', function(){
-                controller.transitionToRoute(controller.get('nextStep'));
-                window.scrollTo(0);
-            });
+      showInEurope: function(event) {
+          this.set('inEurope', true);
+      },
 
-            model.save();
-        }
-    }
+      showOutEurope: function() {
+          this.set('inEurope', false);
+      }
+    },
+    outsideEurope: Em.computed.not('inEurope')
 });
 
 

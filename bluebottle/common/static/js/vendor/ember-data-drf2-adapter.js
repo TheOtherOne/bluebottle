@@ -224,9 +224,16 @@ DS.DRF2Adapter = DS.RESTAdapter.extend({
         var data = {};
         data = this.serialize(record, { includeId: true });
         var hasFile = false;
+
+        var pk_fields = [];
+
         for (key in data) {
             if (record.get(key) instanceof File) {
                 hasFile = true;
+            }
+
+            if (key.slice(-4) == "_ids"){
+                pk_fields.push(key);
             }
         }
         if (hasFile) {
@@ -248,7 +255,11 @@ DS.DRF2Adapter = DS.RESTAdapter.extend({
                     }
                 }
             }
-
+            for(var i=0; i < pk_fields.length; i++) {
+                if (JSON.stringify(data[pk_fields[i]]) != "[]") {
+                    formdata.append(pk_fields[i], JSON.stringify(parseInt(data[pk_fields[i]])) );
+                }
+            }
             return this.ajaxFormData(this.buildURL(root, id), "POST", {
                 data: formdata,
                 headers: {'X-HTTP-Method-Override': 'PUT'},
@@ -383,6 +394,8 @@ DS.DRF2Adapter = DS.RESTAdapter.extend({
         if(record.constructor.toString() == 'App.User') {
             relationship.childReference.parent = relationship.parentReference;
             this._dirtyTree(dirtySet, record);
-        }
+        } else {
+            this._super(dirtySet, record, relationship);
+         }
     }
 });

@@ -30,3 +30,4 @@ App.ItemSelectView = Em.Select.extend({
     optionLabelPath: "content.name",
     prompt: "Pick an item"
 });
+

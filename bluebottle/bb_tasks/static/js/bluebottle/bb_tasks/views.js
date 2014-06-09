@@ -11,6 +11,9 @@ App.TaskPreviewView = Em.View.extend({
     templateName: 'task_preview'
 });
 
+App.TaskSummaryView = Em.View.extend({
+    templateName: 'task_summary'
+});
 
 App.ProjectTaskListView = Em.View.extend(App.ScrollInView, {});
 
@@ -106,7 +109,7 @@ App.TaskStatusSelectView = Em.Select.extend({
 App.SkillSelectView = Em.Select.extend({
     optionValuePath: "content",
     optionLabelPath: "content.name",
-    prompt: "Pick a skill"
+    prompt: gettext("Pick a skill")
 });
 
 

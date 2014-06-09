@@ -38,7 +38,7 @@ App.ProjectTasksIndexRoute = Em.Route.extend({
 });
 
 
-App.TaskRoute = Em.Route.extend({
+App.TaskRoute = Em.Route.extend(App.ScrollToTop, {
     model: function(params) {
         return App.Task.find(params.task_id);
     },
@@ -51,24 +51,26 @@ App.TaskRoute = Em.Route.extend({
             var task = this.modelFor('task');
             var view = App.TaskMemberApplyView.create();
 
-            Bootstrap.ModalPane.popup({
-                heading: gettext('Apply for task'),
-                bodyViewClass: view,
-                primary: gettext('Apply'),
-                secondary: gettext('Cancel'),
-                callback: function(opts, e) {
-                    e.preventDefault();
-                    if (opts.primary) {
-                        taskMember.set('motivation', view.get('motivation'));
-                        taskMember.set('task', task);
-                        taskMember.set('created', new Date());
-                        taskMember.save();
-                    }
-                    if (opts.secondary) {
-                        taskMember.deleteRecord();
-                    }
-                }
-            });
+			if (!this.controllerFor('task').get('isMember')){
+				Bootstrap.ModalPane.popup({
+					heading: gettext('Apply for task'),
+					bodyViewClass: view,
+					primary: gettext('Apply'),
+					secondary: gettext('Cancel'),
+					callback: function(opts, e) {
+						e.preventDefault();
+						if (opts.primary) {
+							taskMember.set('motivation', view.get('motivation'));
+							taskMember.set('task', task);
+							taskMember.set('created', new Date());
+							taskMember.save();
+						}
+						if (opts.secondary) {
+							taskMember.deleteRecord();
+						}
+					}
+				});
+			}
         },
         uploadFile: function(task) {
             var route = this;

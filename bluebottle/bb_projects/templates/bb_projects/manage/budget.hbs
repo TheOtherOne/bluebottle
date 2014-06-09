@@ -25,15 +25,15 @@ Please add 5% administration fee to your budget. The total amount, including the
         <ul>
             {{#each line in budgetLines}}
                 <li class="control-group">
-                    <label class="control-label">{% trans "Budget item description" %}</label>
+                    <label class="control-label">{% trans "Budget item description" context "Budget page" %}</label>
                     <div class="controls">
-                       {{view Em.TextField valueBinding="line.description" placeholder="Description"}}
+                       {% bb_component 'view Em.TextField' valueBinding="line.description" placeholder=_("Description")%}
                     </div>
                 </li>
                 <li class="control-group">
-                    <label class="control-label">{% trans "Amount" %}</label>
+                    <label class="control-label">{% trans "Amount" context "Budget page" %}</label>
                     <div class="controls">
-                       {{view Em.TextField valueBinding="line.amount" placeholder="Amount euro"}}
+                       {% bb_component 'view Em.TextField' valueBinding="line.amount" placeholder=_("Amount euro") %}
                     </div>
                 </li>
                 <li class="control-group">
@@ -69,10 +69,6 @@ Please add 5% administration fee to your budget. The total amount, including the
         </legend>
     </fieldset>
 
-    {{#if shouldSave}}
-        <button {{bindAttr class=":btn :btn-iconed :btn-next"}} {{action updateRecordOnServer}}><span class="flaticon solid right-2"></span>{% trans "Save & Next" %}</button>
-    {{else}}
-        <button {{bindAttr class=":btn :btn-iconed :btn-next"}} {{action goToNextStep}}><span class="flaticon solid right-2"></span>{% trans "Next" %}</button>
-    {{/if}}
+    {{ partial '_my_project_save_edit_footer'}}
 
 {% endtplhandlebars %}

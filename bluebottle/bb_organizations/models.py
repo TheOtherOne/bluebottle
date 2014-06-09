@@ -1,3 +1,4 @@
+from django_iban.fields import IBANField, SWIFTBICField
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import FileSystemStorage
@@ -8,7 +9,12 @@ from django.utils.translation import ugettext as _
 
 from django_extensions.db.fields import ModificationDateTimeField, CreationDateTimeField
 from djchoices import DjangoChoices, ChoiceItem
-from taggit_autocomplete_modified.managers import TaggableManagerAutocomplete as TaggableManager
+from taggit.managers import TaggableManager
+from django.db.models import options
+
+from bluebottle.utils.utils import get_organizationdocument_model
+
+options.DEFAULT_NAMES = options.DEFAULT_NAMES + ('default_serializer', 'manage_serializer')
 
 
 class BaseOrganizationMember(models.Model):
@@ -43,8 +49,8 @@ class BaseOrganizationDocument(models.Model):
 
     @property
     def document_url(self):
-        content_type = ContentType.objects.get_for_model(settings.ORGANIZATIONS_DOCUMENT_MODEL).id
-        return reverse('document-download-detail', kwargs={'content_type': content_type, 'pk': self.pk})
+        content_type = ContentType.objects.get_for_model(get_organizationdocument_model()).id
+        return reverse('document_download_detail', kwargs={'content_type': content_type, 'pk': self.pk})
 
 
 class BaseOrganization(models.Model):
@@ -79,11 +85,32 @@ class BaseOrganization(models.Model):
 
     tags = TaggableManager(blank=True, verbose_name=_('tags'))
 
+    #Account holder Info
+    account_holder_name = models.CharField(_("account holder name"), max_length=255, blank=True)
+    account_holder_address = models.CharField(_("account holder address"), max_length=255, blank=True)
+    account_holder_postal_code = models.CharField(_("account holder postal code"), max_length=20, blank=True)
+    account_holder_city = models.CharField(_("account holder city"), max_length=255, blank=True)
+    account_holder_country = models.ForeignKey('geo.Country', blank=True, null=True, related_name="account_holder_country")
+
+    #Bank details
+    account_iban = IBANField(_("account IBAN"), blank=True)
+    account_bic = SWIFTBICField(_("account SWIFT-BIC"), blank=True)
+    account_number = models.CharField(_("account number"), max_length=255, blank=True)
+    account_bank_name = models.CharField(_("account bank name"), max_length=255, blank=True)
+    account_bank_address = models.CharField(_("account bank address"), max_length=255, blank=True)
+    account_bank_postal_code = models.CharField(_("account bank postal code"), max_length=20, blank=True)
+    account_bank_city = models.CharField(_("account bank city"), max_length=255, blank=True)
+    account_bank_country = models.ForeignKey('geo.Country', blank=True, null=True, related_name="account_bank_country")
+    account_other = models.CharField(_("account information that doesn't fit in the other field"), max_length=255, blank=True)
+
+
     class Meta:
         abstract = True
         ordering = ['name']
         verbose_name = _('organization')
         verbose_name_plural = _('organizations')
+        default_serializer = 'bluebottle.bb_organizations.serializers.OrganizationSerializer'
+        manage_serializer = 'bluebottle.bb_organizations.serializers.ManageOrganizationSerializer'
 
     def __unicode__(self):
         return self.name
