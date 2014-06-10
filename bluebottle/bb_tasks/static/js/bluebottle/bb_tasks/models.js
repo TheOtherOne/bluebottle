@@ -2,36 +2,40 @@
  * Embedded mappings
  */
 
-App.Adapter.map('App.Task', {
-    author: {embedded: 'load'},
-    tags: {embedded: 'always'},
-    members: {embedded: 'load'},
-    files: {embedded: 'load'}
-});
-App.Adapter.map('App.TaskPreview', {
-    author: {embedded: 'load'},
-    project: {embedded: 'load'}
-});
-App.Adapter.map('App.TaskMember', {
-    member: {embedded: 'load'}
-    //task: {embedded: 'load'}
-});
-App.Adapter.map('App.MyTaskMember', {
-    member: {embedded: 'load'},
-    task: {embedded: 'load'}
-});
-App.Adapter.map('App.TaskFile', {
-    author: {embedded: 'load'}
-});
+// FIXME: Ember Data Beta
+// App.Adapter.map('App.Task', {
+//     author: {embedded: 'load'},
+//     tags: {embedded: 'always'},
+//     members: {embedded: 'load'},
+//     files: {embedded: 'load'}
+// });
+// App.Adapter.map('App.TaskPreview', {
+//     author: {embedded: 'load'},
+//     project: {embedded: 'load'}
+// });
+// App.Adapter.map('App.TaskMember', {
+//     member: {embedded: 'load'}
+//     //task: {embedded: 'load'}
+// });
+// App.Adapter.map('App.MyTaskMember', {
+//     member: {embedded: 'load'},
+//     task: {embedded: 'load'}
+// });
+// App.Adapter.map('App.TaskFile', {
+//     author: {embedded: 'load'}
+// });
 
 
 /*
  Models
  */
 
+App.TaskMemberAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks/members';
+    }
+});
 App.TaskMember = DS.Model.extend({
-    url: 'bb_tasks/members',
-
     member: DS.belongsTo('App.UserPreview'),
     created: DS.attr('date'),
     status: DS.attr('string', {defaultValue: 'applied'}),
@@ -57,17 +61,22 @@ App.TaskMember = DS.Model.extend({
 
 });
 
+App.MyTaskAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks/members/my-task';
+    }
+});
 App.MyTaskMember = App.TaskMember.extend({
-    url: 'bb_tasks/members/my-task',
-
     task: DS.belongsTo('App.TaskPreview'),
     time_spent: DS.attr('number')
-    // TODO: validation, time_spent can't be greater than 8
 });
 
+App.TaskFileAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks/files';
+    }
+});
 App.TaskFile = DS.Model.extend({
-    url: 'bb_tasks/files',
-
     author: DS.belongsTo('App.User'),
     title: DS.attr('string'),
     created: DS.attr('date'),
@@ -75,9 +84,12 @@ App.TaskFile = DS.Model.extend({
     task: DS.belongsTo('App.Task')
 });
 
+App.TaskAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks';
+    }
+});
 App.Task = DS.Model.extend({
-    url: 'bb_tasks',
-
     // Model fields
     author: DS.belongsTo('App.UserPreview'),
     title: DS.attr('string'),
@@ -117,12 +129,12 @@ App.Task = DS.Model.extend({
         return this.get('status') == 'closed';
     }.property('status'),
 
-	// statusRealized is not working, instead we have completed...
+    // statusRealized is not working, instead we have completed...
     isStatusRealized: function(){
         return this.get('status') == 'realized';
     }.property('status'),
 
-	isStatusCompleted: function(){
+    isStatusCompleted: function(){
         return this.get('status') == 'completed';
     }.property('status'),
 
@@ -179,28 +191,40 @@ App.Task = DS.Model.extend({
 
 });
 
+
 App.NewTask = App.Task.extend({
     project: DS.belongsTo('App.Project')
 });
 
 
+App.SkillAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks/skills';
+    }
+});
 App.Skill = DS.Model.extend({
-    url: 'bb_tasks/skills',
     name: DS.attr('string')
 });
 
 
 // model for the skills effectively coupled with a task
-App.UsedSkill = App.Skill.extend({
-    url: 'bb_tasks/used_skills'
+App.UsedSkillAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks/used_skills';
+    }
 });
+App.UsedSkill = App.Skill.extend({});
 
 
 /*
 Preview model that doesn't contain all the properties.
  */
+ App.TaskPreviewAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_tasks/previews';
+    }
+});
 App.TaskPreview = App.Task.extend({
-    url: 'bb_tasks/previews',
     project: DS.belongsTo('App.ProjectPreview'),
 
     image: function(){
@@ -215,5 +239,4 @@ App.TaskSearch = DS.Model.extend({
     ordering: DS.attr('string', {defaultValue: 'newest'}),
     status: DS.attr('string', {defaultValue: 'open'}),
     page: DS.attr('number', {defaultValue: 1})
-
 });

@@ -2,9 +2,10 @@
  * Embedded mappings
  */
 
-App.Adapter.map('App.NewsItem', {
-    author: {embedded: 'load'}
-});
+// FIXME: Ember Data Beta
+// App.Adapter.map('App.NewsItem', {
+//     author: {embedded: 'load'}
+// });
 
 
 /**

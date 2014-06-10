@@ -1,4 +1,52 @@
 Ember.Application.initializer({
+    name: 'selectViews',
+    after: 'store',
+    initialize: function(container, application) {
+        var store = container.lookup('store:main');
+
+        // Pre-load these lists so we avoid race conditions when displaying forms
+        store.find('country').then(function(list) {
+            App.CountrySelectView.reopen({
+                content: list
+            });
+            App.CountryCodeSelectView.reopen({
+                content: list
+            });
+        });
+
+        store.find('theme').then(function(list) {
+            App.ThemeSelectView.reopen({
+                content: list
+            });
+        });
+
+        store.find('skill').then(function(list) {
+            App.SkillSelectView.reopen({
+                content: list
+            });
+        });
+
+        store.find('language').then(function(list) {
+            App.LanguageSelectView.reopen({
+                content: list
+            });
+        });
+
+        store.find('projectPhase').then(function(data){
+            var list = [
+                {id: 5, name: gettext("Running campaigns")},
+                {id: 7, name: gettext("Finished campaigns")}
+            ];
+            // FIXME: Find out why this doesn't work and get rid of the hardcoded bit above.
+            // var list = App.ProjectPhase.filter(function(item){return item.get('viewable');});
+            App.ProjectPhaseSelectView.reopen({
+                content: list
+            });
+        });
+    }
+});
+
+Ember.Application.initializer({
     name: 'currentUser',
     after: 'store',
     initialize: function(container, application) {
@@ -6,7 +54,8 @@ Ember.Application.initializer({
         App.deferReadiness();
 
         // Try to fetch the current user
-        App.CurrentUser.find('current').then(function(user) {
+        var store = container.lookup('store:main');
+        store.find('currentUser', 'current').then(function(user) {
             // Read language string from url.
             var language = window.location.pathname.split('/')[1];
 
@@ -69,53 +118,12 @@ App = Em.Application.create({
                 locale = 'en';
             }
         }
-        App.Page.reopen({
-            url: 'pages/' + language + '/pages'
+        App.PageAdapter = DS.Drf2Adapter.extend({
+            pathForType: function () {
+                return 'pages/' + language + '/pages';
+            }
         });
         this.setLocale(locale);
-        this.initSelectViews();
-    },
-
-    initSelectViews: function() {
-        // Pre-load these lists so we avoid race conditions when displaying forms
-        App.Country.find().then(function(list) {
-            App.CountrySelectView.reopen({
-                content: list
-            });
-            App.CountryCodeSelectView.reopen({
-                content: list
-            });
-        });
-
-        App.Theme.find().then(function(list) {
-            App.ThemeSelectView.reopen({
-                content: list
-            });
-        });
-
-        App.Skill.find().then(function(list) {
-            App.SkillSelectView.reopen({
-                content: list
-            });
-        });
-
-        App.Language.find().then(function(list) {
-            App.LanguageSelectView.reopen({
-                content: list
-            });
-        });
-
-        App.ProjectPhase.find().then(function(data){
-            var list = [
-                {id: 5, name: gettext("Running campaigns")},
-                {id: 7, name: gettext("Finished campaigns")}
-            ];
-            // FIXME: Find out why this doesn't work and get rid of the hardcoded bit above.
-            // var list = App.ProjectPhase.filter(function(item){return item.get('viewable');});
-            App.ProjectPhaseSelectView.reopen({
-                content: list
-            });
-        });
     },
 
     setLocale: function(locale) {
@@ -189,34 +197,6 @@ App.ScrollToTop = Em.Mixin.create({
     }
 });
 
-
-/**
- * The Ember Data Adapter and Store configuration.
- */
-App.Adapter = DS.DRF2Adapter.extend({
-    namespace: "api",
-
-    plurals: {
-        "bb_projects/manage": "bb_projects/manage",
-        "bb_projects/plans/manage": "bb_projects/plans/manage",
-        "bb_organizations/manage": "bb_organizations/manage",
-        "bb_organizations/documents/manage": "bb_organizations/documents/manage",
-        "bb_projects/budgetlines/manage": "bb_projects/budgetlines/manage",
-        "users/activate": "users/activate",
-        "users/passwordset": "users/passwordset",
-        "users/time_available": "users/time_available",
-        "homepage": "homepage",
-        "contact/contact": "contact/contact",
-        // TODO: Are the plurals below still needed?
-        "bb_projects/wallposts/media": "bb_projects/wallposts/media",
-        "bb_projects/wallposts/text": "bb_projects/wallposts/text",
-        "bb_projects/campaigns/manage": "bb_projects/campaigns/manage",
-        "bb_projects/pitches/manage": "bb_projects/pitches/manage",
-        "bb_organizations/addresses/manage": "bb_organizations/addresses/manage",
-        "bb_projects/ambassadors/manage": "bb_projects/ambassadors/manage",
-    }
-});
-
 App.ApplicationController = Ember.Controller.extend({
     needs: ['currentUser'],
     display_message: false,
@@ -233,6 +213,10 @@ App.ApplicationController = Ember.Controller.extend({
     }
 });
 
+/**
+ * The Ember Data Adapter and Store configuration.
+ */
+
 // Embedded Model Mapping
 //
 // http://stackoverflow.com/questions/14320925/how-to-make-embedded-hasmany-relationships-work-with-ember-data/14324532#14324532
@@ -241,12 +225,11 @@ App.ApplicationController = Ember.Controller.extend({
 //         for this to work, the child records must have an ID.
 //   always: The child records are embedded when loading, and are saved embedded in the same record. This,
 //           of course, affects the dirtiness of the records (if the child record changes, the adapter will
+
 //           mark the parent record as dirty).
-
-App.Store = DS.Store.extend({
-    adapter: 'App.Adapter'
+App.ApplicationAdapter = DS.Drf2Adapter.extend({
+    namespace: "api",
 });
-
 
 DS.Model.reopen({
     meta_data: DS.attr('object')
@@ -265,6 +248,8 @@ App.SlugRouter = Em.Mixin.create({
     }
 });
 
+
+App.register('location:hashbang', hashbangLocation);
 App.Router.reopen({
     location: 'hashbang'
 });
@@ -324,39 +309,42 @@ App.ApplicationRoute = Em.Route.extend({
                 document.location = '/' + language + document.location.hash;
             }
 
-            App.UserSettings.find(App.CurrentUser.find('current').get('id_for_ember')).then(function(settings){
-                if (language == App.get('language')) {
-                    // Language already set. Don't do anything;
-                    return true;
-                }
-
-                if (settings.get('id')) {
-                    settings.save();
-                }
-                var languages = App.get('interfaceLanguages');
-                for (i in languages) {
-                    // Check if the selected language is available.
-                    if (languages[i].code == language) {
-                        if (settings.get('id')) {
-                            settings.set('primary_language', language);
-                        }
-                        settings.on('didUpdate', function(){
-                            document.location = '/' + language + document.location.hash;
-                        });
-                        settings.save();
+            var store = this.store;
+            store.find('currentUser', 'current').then( function (user) {
+                store.find('userSettings', user.get('id_for_ember')).then(function(settings){
+                    if (language == App.get('language')) {
+                        // Language already set. Don't do anything;
                         return true;
                     }
-                }
-                language = 'en';
-                if (settings.get('id')) {
-                    settings.set('primary_language', language);
-                }
 
-                settings.on('didUpdate', function(){
-                    document.location = '/' + language + document.location.hash;
+                    if (settings.get('id')) {
+                        settings.save();
+                    }
+                    var languages = App.get('interfaceLanguages');
+                    for (i in languages) {
+                        // Check if the selected language is available.
+                        if (languages[i].code == language) {
+                            if (settings.get('id')) {
+                                settings.set('primary_language', language);
+                            }
+                            settings.on('didUpdate', function(){
+                                document.location = '/' + language + document.location.hash;
+                            });
+                            settings.save();
+                            return true;
+                        }
+                    }
+                    language = 'en';
+                    if (settings.get('id')) {
+                        settings.set('primary_language', language);
+                    }
+
+                    settings.on('didUpdate', function(){
+                        document.location = '/' + language + document.location.hash;
+                    });
+                    settings.save();
+                    return true;
                 });
-                settings.save();
-                return true;
             });
             
             return true;

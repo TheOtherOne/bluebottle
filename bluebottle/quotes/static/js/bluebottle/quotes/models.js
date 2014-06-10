@@ -1,6 +1,7 @@
-App.Adapter.map('App.Quote', {
-    user: {embedded: 'load'}
-});
+// FIXME: Ember Data Beta
+// App.Adapter.map('App.Quote', {
+//     user: {embedded: 'load'}
+// });
 
 
 App.Quote = DS.Model.extend({

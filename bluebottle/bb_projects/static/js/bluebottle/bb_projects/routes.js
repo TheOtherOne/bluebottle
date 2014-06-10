@@ -40,7 +40,8 @@ App.Router.map(function(){
 App.ProjectListIndexRoute = Em.Route.extend(App.UsedCountrySelectViewMixin, {
     setupController: function(controller, model) {
         this._super(controller, model);
-        App.UsedTheme.find().then(function(theme_list){
+        
+        this.store.find('usedTheme').then(function(theme_list){
             App.UsedThemeSelectView.reopen({
                 content: theme_list
             });
@@ -54,7 +55,7 @@ App.ProjectRoute = Em.Route.extend(App.ScrollToTop, {
         // Crap hack because Ember somehow doesn't strip query-params.
         // FIXME: Find out this -should- work.
         var project_id = params.project_id.split('?')[0];
-        var page =  App.Project.find(project_id);
+        var page =  this.store.find('project', project_id);
         var route = this;
         page.on('becameError', function() {
             route.transitionTo('projectList');
@@ -80,7 +81,7 @@ App.ProjectIndexRoute = Em.Route.extend(App.WallRouteMixin, {
 
 App.MyProjectListRoute = Em.Route.extend(App.ScrollToTop, {
     model: function(params) {
-        return App.MyProject.find();
+        return this.store.find('myProject').find();
     },
     setupController: function(controller, model) {
         this._super(controller, model);
@@ -207,7 +208,7 @@ App.MyProjectBankRoute = App.MyProjectSubRoute.extend({
         } else if (project.get('organization')) {
             return project.get('organization');
         } else {
-            return App.MyOrganization.createRecord();
+            return this.store.createRecord('MyOrganization');
         }
     }
 });

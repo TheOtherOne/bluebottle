@@ -18,10 +18,7 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
     init: function() {
         this._super();
 
-        // Make sure this record is in it's own transaction so it will never pollute other commits.
-        var transaction = this.get('store').transaction();
-        var form =  transaction.createRecord(App.ProjectSearch);
-        this.set('model', form);
+        this.set('model', this.store.createRecord('projectSearch'));
         this.updateSearch();
     },
 
@@ -73,7 +70,7 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
                 'text': this.get('text'),
                 'theme': this.get('theme')
             };
-            var projects = App.ProjectPreview.find(query);
+            var projects = this.store.find('projectPreview', query);
             list.set('model', projects);
         }
     }.observes('text', 'country', 'theme', 'status', 'page', 'ordering'),
@@ -401,7 +398,9 @@ App.MyProjectSubmitController = App.StandardTabController.extend({
             var model = this.get('model');
 
             // Go to second status/phase
-            model.set('status', App.ProjectPhase.find().objectAt(1));
+            model.set('status', this.store('projectPhase').then( function (phases) {
+                phases.objectAt(1);
+            }));
 
             if (model.get('isNew')) {
                 model.transitionTo('loaded.created.uncommitted');

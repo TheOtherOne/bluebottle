@@ -28,7 +28,7 @@ App.SignupController = Ember.ObjectController.extend({
 App.CurrentUserController = Ember.ObjectController.extend({
     init: function() {
         this._super();
-        this.set("model", App.CurrentUser.find('current'));
+        this.set("model", this.store.find('currentUser', 'current'));
     }
 });
 

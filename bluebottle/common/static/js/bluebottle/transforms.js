@@ -1,3 +1,31 @@
+App.ArrayTransform = DS.Transform.extend({
+    deserialize: function(serialized) {
+        return Ember.isNone(serialized) ? null : Em.A(serialized);
+    },
+    serialize: function(deserialized) {
+        // FIXME: deserialized doesn't have a toJSON() method.
+        return Ember.isNone(deserialized) ? null : deserialized.toJSON();
+    }
+});
+
+App.FileTransform = DS.Transform.extend({
+    deserialize: function(serialized) {
+        return Ember.isNone(serialized) ? null : serialized;
+    },
+    serialize: function(deserialized) {
+        return Ember.isNone(deserialized) ? null : deserialized;
+    }
+});
+
+App.ImageTransform = DS.Transform.extend({
+    deserialize: function(serialized) {
+        return Ember.isNone(serialized) ? null : Em.A(serialized);
+    },
+    serialize: function(deserialized) {
+        return Ember.isNone(deserialized) ? null : deserialized;
+    }
+});
+
 // Make sure we (de)serialize 'date' attributes the right way.
 // DRF2 expects yyy-mm-ddThh:ii:ssZ
 // Ember wants an js Date()
@@ -73,7 +101,6 @@ App.ObjectTransform = DS.Transform.extend({
 
 
 // Send empty string ("") if string value is null.
-
 App.StringTransform = DS.Transform.extend({
     deserialize: function(serialized) {
       return Ember.isNone(serialized) ? null : String(serialized);

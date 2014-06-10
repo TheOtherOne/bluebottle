@@ -1,28 +1,76 @@
-/* Embedded properties */
+/* Serializers */
 
-App.Adapter.map('App.Project', {
-    owner: {embedded: 'load'},
-    country: {embedded: 'load'},
-    meta_data: {embedded: 'load'},
-    tags: {embedded: 'load'}
+App.ProjectSerializer = DS.Drf2Serializer.extend({
+    attrs: {
+        owner: {embedded: 'load'},
+        country: {embedded: 'load'},
+        meta_data: {embedded: 'load'},
+        tags: {embedded: 'load'}      
+    }
 });
 
-App.Adapter.map('App.ProjectPreview', {
-    owner: {embedded: 'load'},
-    country: {embedded: 'load'},
-    theme: {embedded: 'load'}
+App.ProjectPreviewSerializer = DS.Drf2Serializer.extend({
+    attrs: {
+        owner: {embedded: 'load'},
+        country: {embedded: 'load'},
+        theme: {embedded: 'load'}
+    }
 });
 
-App.Adapter.map('App.MyProject', {
-    tags: {embedded: 'always'}
+App.MyProjectSerializer = DS.Drf2Serializer.extend({
+    attrs: {
+        tags: {embedded: 'always'}
+    }
 });
 
-App.Adapter.map('App.PartnerOrganization', {
-    projects: {embedded: 'load'}
+App.PartnerOrganizationSerializer = DS.Drf2Serializer.extend({
+    attrs: {
+        projects: {embedded: 'load'}
+    }
 });
 
-App.Adapter.map('App.ProjectDonation', {
-    member: {embedded: 'both'}
+App.ProjectDonationSerializer = DS.Drf2Serializer.extend({
+    attrs: {
+        member: {embedded: 'both'}
+    }
+});
+
+/* Adaptors */
+
+App.ProjectAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/project';
+    }
+});
+
+App.ProjectPhaseAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/phases';
+    }
+});
+
+App.ThemeAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/themes';
+    }
+});
+
+App.UsedThemeAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/used_themes';
+    }
+});
+
+App.MyProjectBudgetLineAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/budgetlines/manage';
+    }
+});
+
+App.ProjectAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/manage';
+    }
 });
 
 /* Models */
@@ -32,10 +80,7 @@ App.ProjectCountry = DS.Model.extend({
     subregion: DS.attr('string')
 });
 
-
 App.Project = DS.Model.extend({
-    url: 'bb_projects/projects',
-
     // Model fields
     slug: DS.attr('string'),
     status: DS.belongsTo('App.ProjectPhase'),
@@ -130,9 +175,7 @@ App.Project = DS.Model.extend({
     }.observes('isDirty')
 });
 
-
 App.ProjectPhase = DS.Model.extend({
-    url: 'bb_projects/phases',
     name: DS.attr('string'),
     description: DS.attr('string'),
     sequence: DS.attr('number'),
@@ -141,8 +184,13 @@ App.ProjectPhase = DS.Model.extend({
     viewable: DS.attr('boolean')
 });
 
+
+App.ProjectPreviewAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'bb_projects/previews';
+    }
+});
 App.ProjectPreview = App.Project.extend({
-    url: 'bb_projects/previews',
     owner: DS.belongsTo('App.UserPreview'),
     image: DS.attr('string'),
     country: DS.belongsTo('App.ProjectCountry'),
@@ -152,37 +200,27 @@ App.ProjectPreview = App.Project.extend({
 
 
 App.ProjectSearch = DS.Model.extend({
-
     text: DS.attr('string'),
     country: DS.attr('number'),
     theme:  DS.attr('number'),
     ordering: DS.attr('string', {defaultValue: 'popularity'}),
     status: DS.attr('number', {defaultValue: 5}),
     page: DS.attr('number', {defaultValue: 1})
-
 });
 
-
 App.Theme = DS.Model.extend({
-    url: 'bb_projects/themes',
     name: DS.attr('string')
 });
 
-
-App.UsedTheme = App.Theme.extend({
-    url: 'bb_projects/used_themes'
-});
+App.UsedTheme = App.Theme.extend({});
 
 /* Project Manage Models */
 
 App.MyProjectBudgetLine = DS.Model.extend({
-    url: 'bb_projects/budgetlines/manage',
-
     project: DS.belongsTo('App.MyProject'),
     description: DS.attr('string'),
     amount: DS.attr('number')
 });
-
 
 App.BudgetLine = DS.Model.extend({
     project: DS.belongsTo('App.Project'),
@@ -190,10 +228,7 @@ App.BudgetLine = DS.Model.extend({
     amount: DS.attr('number')
 });
 
-
-App.MyProject = App.Project.extend(App.ModelValidationMixin, {
-    url: 'bb_projects/manage',
-    
+App.MyProject = App.Project.extend(App.ModelValidationMixin, {    
     requiredStoryFields: ['description', 'reach'],
     requiredPitchFields: ['title', 'pitch', 'theme', 'tags.length', 'country', 'latitude', 'longitude'],
     friendlyFieldNames: null,

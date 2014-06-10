@@ -1,84 +1,66 @@
 var get = Ember.get, set = Ember.set;
 
-DS.DRF2Serializer = DS.RESTSerializer.extend({
-
-    /**
-     * Add serialization support for arrays.
-     */
-    init: function() {
-        this._super();
-        this.registerTransform('array', {
-            deserialize: function(serialized) {
-                return Ember.isNone(serialized) ? null : Em.A(serialized);
-            },
-            serialize: function(deserialized) {
-                // FIXME: deserialized doesn't have a toJSON() method.
-                return Ember.isNone(deserialized) ? null : deserialized.toJSON();
-            }
-        });
-        this.registerTransform('file', {
-            deserialize: function(serialized) {
-                return Ember.isNone(serialized) ? null : serialized;
-            },
-            serialize: function(deserialized) {
-                return Ember.isNone(deserialized) ? null : deserialized;
-            }
-        });
-        this.registerTransform('image', {
-            deserialize: function(serialized) {
-                return Ember.isNone(serialized) ? null : Em.A(serialized);
-            },
-            serialize: function(deserialized) {
-                return Ember.isNone(deserialized) ? null : deserialized;
-            }
-        });
-    },
-
-
-
+DS.Drf2Serializer = DS.RESTSerializer.extend({
     /**
      * Changes from default:
      * - Don't call sideload() because DRF2 doesn't support it.
      * - Get results directly from json.
      */
-    extract: function(loader, json, type, record) {
-
-        this.extractMeta(loader, type, json);
-
-        if (json) {
-            if (record) {
-                loader.updateId(record, json);
-            }
-            this.extractRecordRepresentation(loader, type, json);
-        }
+    extractSingle: function(store, type, payload) {
+        debugger;
+        extractEmbeddedData(payload, 'locations', store, 'location');
+        return this._super.apply(this, arguments);
     },
+ 
+    // extract: function(loader, json, type, record) {
+
+    //     this.extractMeta(loader, type, json);
+
+    //     if (json) {
+    //         if (record) {
+    //             loader.updateId(record, json);
+    //         }
+    //         this.extractRecordRepresentation(loader, type, json);
+    //     }
+    // },
 
     /**
      * Changes from default:
      * - Don't call sideload() because DRF2 doesn't support it.
      * - Get results from json.results or directly from json.
      */
-    extractMany: function(loader, json, type, records) {
+    extractArray: function(store, primaryType, payload) {
+        debugger;
+        this.extractMeta(store, type, payload);
 
-        this.extractMeta(loader, type, json);
-
-        var references = [];
-        var objects = json['results'] ? json['results'] : json;
-
-        if (records) {
-            records = records.toArray();
-        }
-
-        for (var i = 0; i < objects.length; i++) {
-            if (records) {
-                loader.updateId(records[i], objects[i]);
-            }
-            var reference = this.extractRecordRepresentation(loader, type, objects[i]);
-            references.push(reference);
-        }
-
-        loader.populateArray(references);
+        var locations = [];
+        payload.forEach(function(merchant) {
+            extractEmbeddedData(merchant, 'locations', store, 'location');
+        });
+        return this._super.apply(this, arguments);
     },
+
+    // extractMany: function(loader, json, type, records) {
+
+    //     this.extractMeta(loader, type, json);
+
+    //     var references = [];
+    //     var objects = json['results'] ? json['results'] : json;
+
+    //     if (records) {
+    //         records = records.toArray();
+    //     }
+
+    //     for (var i = 0; i < objects.length; i++) {
+    //         if (records) {
+    //             loader.updateId(records[i], objects[i]);
+    //         }
+    //         var reference = this.extractRecordRepresentation(loader, type, objects[i]);
+    //         references.push(reference);
+    //     }
+
+    //     loader.populateArray(references);
+    // },
 
     /**
      * Changes from default:
@@ -130,12 +112,12 @@ DS.DRF2Serializer = DS.RESTSerializer.extend({
 
 
 
-DS.DRF2Adapter = DS.RESTAdapter.extend({
+DS.Drf2Adapter = DS.RESTAdapter.extend({
 
     /**
      * Use a custom serializer for DRF2.
      */
-    serializer: DS.DRF2Serializer,
+    defaultSerializer: 'DS/drf2',
 
     /**
      * Bulk commits are not supported by this adapter.
@@ -306,6 +288,7 @@ DS.DRF2Adapter = DS.RESTAdapter.extend({
      * - Set the response text directly, not from the 'errors' property.
      */
     didError: function(store, type, record, xhr) {
+        debugger
         if (xhr.status === 400) {
             var data = JSON.parse(xhr.responseText);
             store.recordWasInvalid(record, data);

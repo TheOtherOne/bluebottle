@@ -1,10 +1,10 @@
-App.Adapter.map('App.MyOrganization', {
-    documents: {embedded: 'load'}
-});
-
-App.Adapter.map('App.MyOrganizationDocument', {
-    file: {embedded: 'load'}
-});
+// FIXME: Ember Data Beta
+// App.Adapter.map('App.MyOrganization', {
+//     documents: {embedded: 'load'}
+// });
+// App.Adapter.map('App.MyOrganizationDocument', {
+//     file: {embedded: 'load'}
+// });
 
 
 App.Organization = DS.Model.extend({

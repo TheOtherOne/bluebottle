@@ -9,9 +9,12 @@
 
   User Detail (GET/PUT):   /users/profiles/<pk>
  */
+App.UserAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'users/profiles';
+    }
+});
 App.User = DS.Model.extend({
-    url: 'users/profiles',
-
     username: DS.attr('string'),
     // TODO: loose these in favour of short/full name
     first_name: DS.attr('string'),
@@ -154,15 +157,25 @@ App.User.reopen({
 
 //Configure the embedded object. Embed UserAddress object in user settings.
 // (see: http://stackoverflow.com/questions/14521182/ember-data-does-not-support-embedded-objects/14521612#14521612)
-App.Adapter.map('App.UserSettings', {
-   address: {
-       embedded: 'always'
-   }
+
+// FIXME: Ember Data Beta
+// App.Adapter.map('App.UserSettings', {
+//    address: {
+//        embedded: 'always'
+//    }
+// });
+
+App.UserSettingsAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'users/settings';
+    },
+    map: {
+      address: {
+          embedded: 'always'
+      }      
+    }
 });
-
 App.UserSettings = DS.Model.extend({
-    url: 'users/settings',
-
     email: DS.attr('string'),
     newsletter: DS.attr('boolean'),
     share_time_knowledge: DS.attr('boolean'),
@@ -183,11 +196,13 @@ App.UserAddress = DS.Model.extend({
     postal_code: DS.attr('string')
 });
 
-
+App.UserPreviewAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        // We use the same  url as for full User as we almost never use this.
+        return 'users/profiles';
+    }
+});
 App.UserPreview = DS.Model.extend({
-    // We use the same  url as for full User as we almost never use this.
-    url: 'users/profiles',
-
     username: DS.attr('string'),
 
     // TODO: loose these in favour of short/full name
@@ -219,9 +234,13 @@ App.UserPreview = DS.Model.extend({
 
  TODO: Should be unified to App.User model.
  */
-App.CurrentUser = App.UserPreview.extend({
-    url: 'users',
 
+App.CurrentUserAdapter = App.ApplicationAdapter.extend({
+  pathForType: function () {
+    return 'users';
+  }
+});
+App.CurrentUser = App.UserPreview.extend({
     email: DS.attr('string'),
     primary_language: DS.attr('string'),
     name: DS.attr('string'),
@@ -230,20 +249,22 @@ App.CurrentUser = App.UserPreview.extend({
     id_for_ember: DS.attr('number'),
 
     getUser: function(){
-        return App.User.find(this.get('id_for_ember'));
+        return this.store.find('user', this.get('id_for_ember'));
     }.property('id_for_ember'),
     getUserPreview: function(){
-        return App.UserPreview.find(this.get('id_for_ember'));
+        return this.store.find('userPreview', this.get('id_for_ember'));
     }.property('id_for_ember'),
     isAuthenticated: function(){
         return (this.get('username')) ? true : false;
     }.property('username')
 });
 
-
-App.UserActivation = App.CurrentUser.extend({
-    url: 'users/activate'
+App.UserActivationAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'users/activate';
+    }
 });
+App.UserActivation = App.CurrentUser.extend({});
 
 
 /*
@@ -254,9 +275,12 @@ App.UserActivation = App.CurrentUser.extend({
  User (POST):   /users/
 
  */
+App.UserCreateAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'users';
+    }
+});
 App.UserCreate = DS.Model.extend({
-    url: 'users',
-
     first_name: DS.attr('string'),
     last_name: DS.attr('string'),
     email: DS.attr('string'),
@@ -264,16 +288,23 @@ App.UserCreate = DS.Model.extend({
 });
 
 
+App.PasswordResetAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'users/passwordset';
+    }
+});
 App.PasswordReset = DS.Model.extend({
-    url: 'users/passwordset',
-
     new_password1: DS.attr('string'),
     new_password2: DS.attr('string')
 });
 
 
+App.TimeAvailableAdapter = App.ApplicationAdapter.extend({
+    pathForType: function () {
+        return 'users/time_available';
+    }
+});
 App.TimeAvailable = DS.Model.extend({
-    url: 'users/time_available',
-	type: DS.attr('string'),
-	description : DS.attr('string')
+    type: DS.attr('string'),
+    description : DS.attr('string')
 });

@@ -2,23 +2,24 @@
  * Embedded mapping
  */
 
-App.Adapter.map('App.WallPost', {
-    author: {embedded: 'load'},
-    photos: {embedded: 'load'},
-    reactions: {embedded: 'load'}
-});
-App.Adapter.map('App.TextWallPost', {
-    author: {embedded: 'load'},
-    reactions: {embedded: 'load'}
-});
-App.Adapter.map('App.MediaWallPost', {
-    author: {embedded: 'load'},
-    photos: {embedded: 'load'},
-    reactions: {embedded: 'load'}
-});
-App.Adapter.map('App.WallPostReaction', {
-    author: {embedded: 'load'}
-});
+// FIXME: Ember Data Beta
+// App.Adapter.map('App.WallPost', {
+//     author: {embedded: 'load'},
+//     photos: {embedded: 'load'},
+//     reactions: {embedded: 'load'}
+// });
+// App.Adapter.map('App.TextWallPost', {
+//     author: {embedded: 'load'},
+//     reactions: {embedded: 'load'}
+// });
+// App.Adapter.map('App.MediaWallPost', {
+//     author: {embedded: 'load'},
+//     photos: {embedded: 'load'},
+//     reactions: {embedded: 'load'}
+// });
+// App.Adapter.map('App.WallPostReaction', {
+//     author: {embedded: 'load'}
+// });
 
 
 /*

@@ -75,24 +75,20 @@
         <script type="text/javascript" src="{% static 'js/vendor/jquery-ui/minified/jquery.ui.core.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/vendor/jquery-ui/minified/jquery.ui.datepicker.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/vendor/handlebars-1.0.0.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/vendor/ember-v1.0.0.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/vendor/ember-data-v0.14.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/ember-v1.5.1.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/ember-data-1.0.0-beta.9.js' %}"></script>
     {% endcompress %}
 
     {% compress js %}
+        {# Ember vendor libs #}
         <script type="text/javascript" src="{% static 'js/vendor/ember-data-drf2-adapter.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/vendor/ember-meta.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/vendor/globalize.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/globalize.js' %}"></script>        
 
         {# Other libs #}
         {% with 'jsi18n/'|add:LANGUAGE_CODE|add:'/djangojs.js' as i18n_static %}
             <script type="text/javascript" src="{% static i18n_static %}"></script>
         {% endwith %}
-
-        {% if DEBUG %}
-            {# Ember profiling #}
-            <script type="text/javascript" src="{% static 'js/vendor/ember-renderspeed.js' %}"></script>
-        {% endif %}
 
         <script type="text/javascript" src="{% static 'js/vendor/bootstrap/bootstrap-transition.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/vendor/bootstrap/bootstrap-modal.js' %}"></script>
@@ -123,13 +119,16 @@
         {% block ember_scripts %}
             {{ block.super }}
 
+            {# BB Ember libs #}
             <script type="text/javascript" src="{% static 'js/bluebottle/presets.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/app.js' %}"></script>
+            <script type="text/javascript" src="{% static 'js/bluebottle/transforms.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/utils.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/mixins.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/controllers.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/overrides.js' %}"></script>
 
+            {# BB Apps JS #}
             {% for app in bb_apps %}
                 {% with 'js/bluebottle/'|add:app|add:'/routes.js' as js_static %}
                     <script type="text/javascript" src="{% static js_static %}"></script>
