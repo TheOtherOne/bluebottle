@@ -3,17 +3,17 @@
 App.Adapter.map('App.Project', {
     owner: {embedded: 'load'},
     country: {embedded: 'load'},
-    meta: {embedded: 'load'},
+    meta_data: {embedded: 'load'},
     tags: {embedded: 'load'}
 });
 
 App.Adapter.map('App.ProjectPreview', {
+    owner: {embedded: 'load'},
     country: {embedded: 'load'},
     theme: {embedded: 'load'}
 });
 
 App.Adapter.map('App.MyProject', {
-    budgetLines: {embedded: 'load'},
     tags: {embedded: 'always'}
 });
 
@@ -143,6 +143,7 @@ App.ProjectPhase = DS.Model.extend({
 
 App.ProjectPreview = App.Project.extend({
     url: 'bb_projects/previews',
+    owner: DS.belongsTo('App.UserPreview'),
     image: DS.attr('string'),
     country: DS.belongsTo('App.ProjectCountry'),
     pitch: DS.attr('string'),
@@ -156,37 +157,10 @@ App.ProjectSearch = DS.Model.extend({
     country: DS.attr('number'),
     theme:  DS.attr('number'),
     ordering: DS.attr('string', {defaultValue: 'popularity'}),
-    phase: DS.attr('string', {defaultValue: 'campaign'}),
+    status: DS.attr('number', {defaultValue: 5}),
     page: DS.attr('number', {defaultValue: 1})
 
 });
-
-// TODO: Refactor App.DonationPreview to ProjectSupporter
-App.DonationPreview = DS.Model.extend({
-    url: 'bb_projects/supporters',
-
-    project: DS.belongsTo('App.ProjectPreview'),
-    member: DS.belongsTo('App.UserPreview'),
-    date_donated: DS.attr('date'),
-
-    time_since: function(){
-        return Globalize.format(this.get('date_donated'), 'X');
-    }.property('date_donated')
-});
-
-
-App.ProjectDonation = DS.Model.extend({
-    url: 'bb_projects/donations',
-
-    member: DS.belongsTo('App.UserPreview'),
-    amount: DS.attr('number'),
-    date_donated: DS.attr('date'),
-
-    time_since: function(){
-        return Globalize.format(this.get('date_donated'), 'X');
-    }.property('date_donated')
-});
-
 
 
 App.Theme = DS.Model.extend({
@@ -224,8 +198,6 @@ App.MyProject = App.Project.extend(App.ModelValidationMixin, {
     requiredPitchFields: ['title', 'pitch', 'theme', 'tags.length', 'country', 'latitude', 'longitude'],
     friendlyFieldNames: null,
 
-
-
     init: function () {
         this._super();
 
@@ -252,7 +224,7 @@ App.MyProject = App.Project.extend(App.ModelValidationMixin, {
     },
 
     valid: function(){
-        return (this.get('') && this.get('validPitch'));
+        return (this.get('validStory') && this.get('validPitch'));
     }.property('validStory', 'validPitch'),
 
     organization: DS.belongsTo('App.MyOrganization'),

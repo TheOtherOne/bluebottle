@@ -45,9 +45,9 @@ App.ProjectPlanView = Em.View.extend({
 
     didInsertElement: function(){
         // project plan
-        var height = $(window).height();
-        var width = $(window).width();
-        this.$(".project-plan-navigation, .project-plan-main").height(height);
+        //var height = $(window).height();
+        //var width = $(window).width();
+        //this.$(".project-plan-navigation, .project-plan-main").height(height+60);
         
         var view = this;
         view.$(".project-plan-main-link:first").addClass("active");
@@ -67,26 +67,14 @@ App.ProjectPlanView = Em.View.extend({
             view.$(event.target).addClass("active");
             event.preventDefault();
         }); 
-    }    
+    }
 });
 
 App.ProjectIndexView = Em.View.extend({
-    templateName: 'project_wall',
+    templateName: 'project_wall'
 });
 
 /* Form Elements */
-
-App.ProjectOrderList = [
-    {value: 'title', title: gettext("title")},
-    {value: 'money_needed', title: gettext("money needed")},
-    {value: 'deadline', title: gettext("deadline")}
-];
-
-App.ProjectOrderSelectView = Em.Select.extend({
-    content: App.ProjectOrderList,
-    optionValuePath: "content.value",
-    optionLabelPath: "content.title"
-});
 
 App.ProjectPhaseSelectView = Em.Select.extend({
     optionValuePath: "content.id",
@@ -131,7 +119,7 @@ App.MyProjectListView = Em.View.extend({
 App.ThemeSelectView = Em.Select.extend({
     optionValuePath: "content.id",
     optionLabelPath: "content.name",
-    prompt: "Pick a theme"
+    prompt: gettext("Pick a theme")
 });
 
 App.UsedThemeSelectView = App.ThemeSelectView.extend();
@@ -184,7 +172,7 @@ App.MyProjectAmbassadorsView = Em.View.extend({
     templateName: 'my_project_ambassadors'
 });
 
-App.MyProjectBankView = Em.View.extend({
+App.MyProjectBankView = Em.View.extend(Em.TargetActionSupport, {
     templateName: 'my_project_bank'
 });
 

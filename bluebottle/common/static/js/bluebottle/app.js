@@ -1,3 +1,34 @@
+Ember.Application.initializer({
+    name: 'currentUser',
+    after: 'store',
+    initialize: function(container, application) {
+        // delay boot until the current user promise resolves
+        App.deferReadiness();
+
+        // Try to fetch the current user
+        App.CurrentUser.find('current').then(function(user) {
+            // Read language string from url.
+            var language = window.location.pathname.split('/')[1];
+
+            // Setup language
+            var primaryLanguage = user.get('primary_language');
+            primaryLanguage = primaryLanguage.replace('_', '-').toLowerCase();
+            if (primaryLanguage && primaryLanguage != language) {
+                document.location = '/' + primaryLanguage + document.location.hash;
+            }
+
+            // We don't have to check if it's one of the languages available. Django will have thrown an error before this.
+            application.set('language', language);
+
+            // boot the app
+            App.advanceReadiness();
+        }, function(error) {
+            // boot the app without a currect user
+            App.advanceReadiness();
+        });
+    }
+});
+
 App = Em.Application.create({
     VERSION: '1.0.0',
 
@@ -14,20 +45,10 @@ App = Em.Application.create({
     ],
 
     ready: function() {
-        // Read language string from url.
-        var language = window.location.pathname.split('/')[1];
-        App.CurrentUser.find('current').then(
-            function(user){
-                var primaryLanguage = user.get('primary_language');
-                primaryLanguage = primaryLanguage.replace('_', '-').toLowerCase();
-                if (primaryLanguage && primaryLanguage != language) {
-                    document.location = '/' + primaryLanguage + document.location.hash;
-                }
-            }
-        );
+        this.set('csrfToken', getCookie('csrftoken'));
 
-        // We don't have to check if it's one of the languages available. Django will have thrown an error before this.
-        this.set('language', language);
+        // Read language string from url.
+        var language = this.get('language');
 
         // Now that we know the language we can load the handlebars templates.
         //this.loadTemplates(this.templates);
@@ -48,7 +69,9 @@ App = Em.Application.create({
                 locale = 'en';
             }
         }
-
+        App.Page.reopen({
+            url: 'pages/' + language + '/pages'
+        });
         this.setLocale(locale);
         this.initSelectViews();
 
@@ -88,11 +111,14 @@ App = Em.Application.create({
         });
 
         App.ProjectPhase.find().then(function(data){
-
-            var list = App.ProjectPhase.filter(function(item){return item.get('viewable');});
-
+            var list = [
+                {id: 5, name: gettext("Running campaigns")},
+                {id: 7, name: gettext("Finished campaigns")}
+            ];
+            // FIXME: Find out why this doesn't work and get rid of the hardcoded bit above.
+            // var list = App.ProjectPhase.filter(function(item){return item.get('viewable');});
             App.ProjectPhaseSelectView.reopen({
-            content: list
+                content: list
             });
         });
     },
@@ -183,7 +209,7 @@ App.Adapter = DS.DRF2Adapter.extend({
         "bb_projects/budgetlines/manage": "bb_projects/budgetlines/manage",
         "users/activate": "users/activate",
         "users/passwordset": "users/passwordset",
-	"users/time_available": "users/time_available",
+        "users/time_available": "users/time_available",
         "homepage": "homepage",
         "contact/contact": "contact/contact",
         // TODO: Are the plurals below still needed?
@@ -232,6 +258,7 @@ App.Store = DS.Store.extend({
     adapter: 'App.Adapter'
 });
 
+
 DS.Model.reopen({
     meta_data: DS.attr('object')
 });
@@ -269,12 +296,6 @@ App.Router.reopen({
             });
         }
     }
-});
-
-Em.Route.reopen({
-    meta_data: function(){
-        return this.get('context.meta_data');
-    }.property('context.meta_data')
 });
 
 App.Router.map(function() {
@@ -344,49 +365,30 @@ App.ApplicationRoute = Em.Route.extend({
                 settings.save();
                 return true;
             });
+            
             return true;
         },
+
         openInFullScreenBox: function(name, context) {
             this.send('openInBox', name, context, 'full-screen');
         },
+
         openInScalableBox: function(name, context) {
             this.send('openInBox', name, context, 'scalable');
         },
+
         openInBigBox: function(name, context) {
             this.send('openInBox', name, context, 'large');
         },
-        openInBox: function(name, context, type) {
-            // Close all other modals.
-            $('.close-modal').click();
 
-            // Get the controller or create one
-            var controller = this.controllerFor(name);
-            if (context) {
-                controller.set('model', context);
-            }
-
-            if (typeof type === 'undefined')
-              type = 'normal'
-
-            var classNames = [type];
-
-            // Get the view. This should be defined.
-            var view = App[name.classify() + 'View'].create();
-            view.set('controller', controller);
-
-            var modalPaneTemplate = ['<div class="modal-wrapper"><a class="close" rel="close">&times;</a>{{view view.bodyViewClass}}</div>'].join("\n");
-
-            Bootstrap.ModalPane.popup({
-                classNames: classNames,
-                defaultTemplate: Em.Handlebars.compile(modalPaneTemplate),
-                bodyViewClass: view,
-                controller: controller
-            });
-
+        openInBox: function(name, context, type, callback) {
+            this.openInBox(name, context, type, callback);
         },
+        
         closeAllModals: function(){
             $('[rel=close]').click();
         },
+
         showProjectTaskList: function(project_id) {
             var route = this;
             App.Project.find(project_id).then(function(project) {
@@ -394,25 +396,50 @@ App.ApplicationRoute = Em.Route.extend({
                 route.transitionTo('projectTaskList');
             });
         },
+
         showPage: function(page_id) {
             var route = this;
             App.Page.find(page_id).then(function(page) {
                 route.transitionTo('page', page);
                 window.scrollTo(0, 0);
             });
-        },
-
-        addDonation: function (project) {
-            var route = this;
-            App.CurrentOrder.find('current').then(function(order) {
-                var store = route.get('store');
-                var donation = store.createRecord(App.CurrentOrderDonation);
-                donation.set('project', project);
-                donation.set('order', order);
-                donation.save();
-                route.transitionTo('currentOrder.donationList');
-            });
         }
+    },
+
+    // Add openInBox as function on ApplicationRoute so that it can be used
+    // outside the usual template/action context
+    openInBox: function(name, context, type, callback) {
+        // Close all other modals.
+        $('.close-modal').click();
+
+        // Get the controller or create one
+        var controller = this.controllerFor(name);
+        if (context) {
+            controller.set('model', context);
+        }
+
+        if (typeof type === 'undefined')
+          type = 'normal'
+
+        var classNames = [type];
+
+        // Get the view. This should be defined.
+        var view = App[name.classify() + 'View'].create();
+        view.set('controller', controller);
+
+        var modalPaneTemplate = ['<div class="modal-wrapper"><a class="close" rel="close">&times;</a>{{view view.bodyViewClass}}</div>'].join("\n");
+
+        var options = {
+            classNames: classNames,
+            defaultTemplate: Em.Handlebars.compile(modalPaneTemplate),
+            bodyViewClass: view
+        }
+
+        if (callback) {
+            options.callback = callback;
+        }
+
+        Bootstrap.ModalPane.popup(options);
     },
 
     urlForEvent: function(actionName, context) {
@@ -420,6 +447,18 @@ App.ApplicationRoute = Em.Route.extend({
     }
 });
 
+// FIXME: we should make this cleaner by ensuring the current
+//        user is fetched before we do any routing.
+App.ErrorNotAllowedRoute = Em.Route.extend({
+    beforeModel: function() {
+        var self = this;
+        App.CurrentUser.find('current').then( function (user) {
+            if (user.get('isAuthenticated')) {
+                self.transitionTo('home');
+            }
+        });
+    }
+});
 
 App.UserIndexRoute = Em.Route.extend({
     beforeModel: function() {
@@ -443,7 +482,6 @@ App.LanguageView = Em.View.extend({
 });
 
 App.LanguageSwitchView = Em.CollectionView.extend({
-    tagName: 'ul',
     classNames: ['nav-language'],
     content: App.interfaceLanguages,
     itemViewClass: App.LanguageView

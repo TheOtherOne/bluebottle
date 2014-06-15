@@ -15,7 +15,9 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
         return this.get('controllers.projectList');
     }.property(),
 
-    init: function(){
+    init: function() {
+        this._super();
+
         // Make sure this record is in it's own transaction so it will never pollute other commits.
         var transaction = this.get('store').transaction();
         var form =  transaction.createRecord(App.ProjectSearch);
@@ -50,9 +52,6 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
     orderedByNewest: function(){
         return (this.get('ordering') == 'newest');
     }.property('ordering'),
-    orderedByNeeded: function(){
-        return (this.get('ordering') == 'money_needed');
-    }.property('ordering'),
     orderedByDeadline: function(){
         return (this.get('ordering') == 'deadline');
     }.property('ordering'),
@@ -62,10 +61,9 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
             // If the query changes we should jump back to page 1
             this.set('page', 1);
         }
-        if (this.get('model.isDirty') ) {
+        if (this.get('model.isDirty')) {
             var list = this.get('listController');
             var controller = this;
-
             var query = {
                 'page_size': this.get('pageSize'),
                 'page': this.get('page'),
@@ -96,9 +94,8 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
             this.set('model.text', '');
             this.set('model.country', null);
             this.set('model.theme', null);
-            this.set('model.phase', null);
+            this.set('model.status', null);
         }
-
     }
 });
 
@@ -107,8 +104,8 @@ App.ProjectController = Em.ObjectController.extend({
     needs: ['projectIndex', 'currentUser'],
 
     isFundable: function(){
-       return (this.get('phase') == 'campaign' && this.get('campaign.money_asked'));
-    }.property('phase', 'campaign'),
+       return (this.get('status') == '5' && this.get('campaign.money_asked'));
+    }.property('status'),
 
     allTags: function() {
         var tags = this.get('plan.tags');
@@ -131,6 +128,7 @@ App.ProjectController = Em.ObjectController.extend({
 
 App.ProjectPlanController = Ember.ObjectController.extend(App.StaticMapMixin, {
     counter: 0,
+    hasPdfDownload: true,
 
     storyWithHeaderIds: function() {
         var story = this.get("story");
@@ -278,12 +276,16 @@ App.MyProjectListController = Em.ArrayController.extend({
             }
         });
         return can;
-    }.property('model.@each.phase')
+    }.property('model.@each.status')
 
 });
 
 App.MyProjectController = Em.ObjectController.extend({
     needs: ['currentUser', 'myProjectOrganisation'],
+
+    // A way to automate things in the frontend, not yet used
+//	tabs: ['MyProjectStart', 'MyProjectPitch', 'MyProjectStory',
+//           'MyProjectOrganisation', 'MyProjectSubmit'],
 
     // Create a one way binding so that changes in the MyProject controller don't alter the value in
     // the MyProjectOrganization controller. This way the MyProjectOrganization controller is in 
@@ -316,10 +318,9 @@ App.MyProjectController = Em.ObjectController.extend({
         return !!this.get('model.title');
     }.property('model.title'),
 
-	isSubmittable: function(){
-		return (this.get('isPhasePlanNew') || this.get('isPhaseNeedsWork'))
-	}.property('isPhasePlanNew', 'isPhaseNeedsWork'),
-
+    isSubmittable: function(){
+        return (this.get('isPhasePlanNew') || this.get('isPhaseNeedsWork'));
+    }.property('isPhasePlanNew', 'isPhaseNeedsWork'),
 
     validOrganization: function () {
         var organization = this.get('myOrganization'),
@@ -330,10 +331,10 @@ App.MyProjectController = Em.ObjectController.extend({
         } else {
             return project.get('organization.validOrganization');
         }
-    }.property('myOrganization', 'model.organization')
+    }.property('myOrganization.validOrganization', 'model.organization.validOrganization')
 });
 
-App.MyProjectStartController = Em.ObjectController.extend(App.MoveOnMixin, {
+App.MyProjectStartController = App.StandardTabController.extend({
     needs: ['currentUser'],
 
     nextStep: 'myProject.pitch'
@@ -382,16 +383,17 @@ App.MyProjectStoryController = App.StandardTabController.extend({
 });
 
 App.MyProjectSubmitController = App.StandardTabController.extend({
-    needs: ['myProjectOrganisation'],
+    needs: ['myProjectOrganisation', 'myProject', 'myProjectBank'],
     previousStep: 'myProject.organisation',
+
+    // data has loaded when the project isLoaded and the organization (if set) isLoaded
+    hasLoaded: function () {
+        return !!this.get('model.isLoaded') && (!this.get('model.organization') || this.get('model.organization.isLoaded'));
+    }.property('model.isLoaded', 'model.organization.isLoaded'),
 
     validSubmit: function () {
         return !this.get('model.isNew') && !this.get('controllers.myProjectOrganisation.model.isNew');
     }.property('controllers.myProjectOrganisation.model.isNew', 'model.isNew'),
-
-    missingFieldsOrganization: function () {
-        return this.get('controllers.myProjectOrganisation.model.missingFieldsOrganization');
-    }.property('controllers.myProjectOrganisation.model.missingFieldsOrganization'),
 
     actions: {
         submitPlan: function(e) {
@@ -424,6 +426,11 @@ App.MyProjectSubmitController = App.StandardTabController.extend({
         }
     },
 
+    currentOrganization: function() {
+        return (this.get('model.organization') || this.get('controllers.myProjectOrganisation.model'));
+    }.property('model.organization.id', 'controllers.myProjectOrganisation.model.id'),
+
+    //TODO: is this needed?
     exit: function(){
         this.set('model.status', 'new');
         this._super();

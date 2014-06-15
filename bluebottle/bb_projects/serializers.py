@@ -64,6 +64,7 @@ class ProjectPreviewSerializer(serializers.ModelSerializer):
     country = ProjectCountrySerializer(source='country')
     pitch = serializers.CharField(source='pitch')
     theme = ProjectThemeSerializer(source='theme')
+    owner = UserPreviewSerializer()
 
     class Meta:
         model = PROJECT_MODEL
@@ -91,5 +92,4 @@ class ManageProjectSerializer(TaggableSerializerMixin, serializers.ModelSerializ
     class Meta:
         model = PROJECT_MODEL
         fields = ('id', 'title', 'description', 'editable', 'viewable', 'status', 'image', 'pitch',
-                  'slug', 'tags', 'created', 'url', 'country')
-
+                  'slug', 'tags', 'created', 'url', 'country', 'theme', 'organization', 'language')

@@ -20,37 +20,9 @@ class ProjectPreviewList(PreviewSerializerMixin, generics.ListAPIView):
     max_paginate_by = 100
 
     def get_queryset(self):
-        qs = PROJECT_MODEL.objects.filter(status__viewable=True)
-
-        # For some reason the query fails if the country filter is defined before this.
-        ordering = self.request.QUERY_PARAMS.get('ordering', None)
-
-        if ordering == 'newest':
-            qs = qs.order_by('-created')
-        elif ordering == 'title':
-            qs = qs.order_by('title')
-        elif ordering == 'deadline':
-            qs = qs.order_by('deadline')
-
-        country = self.request.QUERY_PARAMS.get('country', None)
-        if country:
-            qs = qs.filter(country=country)
-
-        theme = self.request.QUERY_PARAMS.get('theme', None)
-        if theme:
-            qs = qs.filter(theme_id=theme)
-
-        status = self.request.QUERY_PARAMS.get('status', None)
-        if status:
-            qs = qs.filter(status__id=status)
-
-        text = self.request.QUERY_PARAMS.get('text', None)
-        if text:
-            qs = qs.filter(Q(title__icontains=text) |
-                           Q(pitch__icontains=text) |
-                           Q(description__icontains=text))
-
-        return qs.all()
+        query = self.request.QUERY_PARAMS
+        qs = PROJECT_MODEL.objects.search(query=query)
+        return qs.filter(status__viewable=True).all()
 
 
 class ProjectPreviewDetail(PreviewSerializerMixin, generics.RetrieveAPIView):
@@ -177,7 +149,6 @@ class ManageProjectDetail(ManageSerializerMixin, generics.RetrieveUpdateAPIView)
 class ProjectThemeList(generics.ListAPIView):
     model = ProjectTheme
     serializer_class = ProjectThemeSerializer
-    paginate_by = 10
 
 
 class ProjectUsedThemeList(ProjectThemeList):

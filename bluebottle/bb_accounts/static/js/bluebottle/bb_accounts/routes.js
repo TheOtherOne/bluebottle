@@ -20,7 +20,7 @@ App.Router.map(function(){
 /*
  *  Routes
  */
-App.SignupRoute = Em.Route.extend({
+App.SignupRoute = Em.Route.extend(App.ScrollToTop, {
     redirect: function() {
         if (this.controllerFor('currentUser').get('isAuthenticated')) {
             this.transitionTo('home');
@@ -43,7 +43,7 @@ App.UserIndexRoute = Em.Route.extend({
 });
 
 
-App.UserProfileRoute = Em.Route.extend({
+App.UserProfileRoute = Em.Route.extend(App.ScrollToTop, {
     model: function() {
         var route = this;
         return App.CurrentUser.find('current').then(function(user) {
@@ -155,6 +155,7 @@ App.UserActivateRoute = Em.Route.extend({
         // This seems the only way to (more or less) always load the logged in user,
         Em.run.later(function() {
             currentUser.transitionTo('loaded.saved');
+            App.set('csrfToken', getCookie('csrftoken'));
             currentUser.reload();
         }, 3000);
 

@@ -14,8 +14,6 @@ function getCookie(name) {
     return cookieValue;
 }
 
-var csrf_token = getCookie('csrftoken');
-
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
@@ -44,7 +42,7 @@ $.ajaxSetup({
             // Send the token to same-origin, relative URLs only.
             // Send the token only if the method warrants CSRF protection
             // Using the CSRFToken value acquired earlier
-            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+            xhr.setRequestHeader("X-CSRFToken", App.get('csrfToken'));
         }
     }
 });

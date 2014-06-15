@@ -30,6 +30,7 @@ $color-deselect                                            : #bfbfbf !default;
                                                                 
 $facebook-blue                                             : #45619d !default;
 $twitter-blue                                              : #33b9e2 !default;
+$skype-blue                                                : #12a5f4 !default;
                                                                 
 // Typography                                                   
 // --------------------------------                             
@@ -190,7 +191,7 @@ $form-radio-select-input-border-color                      : darken($color-secon
 $form-select-hover-border-color                            : $color-secondary !default;
 $form-select-error-border-color                            : $color-error !default;
 
-$form-placeholder-color                                    : $gray-light !default;
+$form-placeholder-color                                    : $gray !default;
                                                                 
 // Modules                                                      
 // ----------------------------------                           
@@ -303,7 +304,7 @@ $projects-project-item-tasks-hover-color                   : $gray-darker !defau
 $projects-project-list-bg-color                            : $white !default;
 $projects-project-list-listitem-border-left-right-color    : $white !default;
 $projects-project-list-listitem-border-bottom-color        : $gray-lighter !default;
-$projects-project-list-listitem-bg-color                   : $gray-lighter !default;
+$projects-project-list-listitem-bg-color                   : $white !default;
 $projects-project-list-listitem-project-title-color        : $color-heading !default;
 $projects-project-list-listitem-project-subtitle-color     : $gray !default;
 $projects-project-list-listitem-project-meta-color         : $gray !default;
@@ -439,7 +440,7 @@ $wallposts-post-comment-color                              : $color-secondary !d
 
 $wallposts-form-tabs-active-bg-color                       : $gray-dark !default;
 $wallposts-form-tabs-active-color                          : $white !default;
-$wallposts-form-upload-button-color                        : $white !default;
+$wallposts-form-upload-button-color                        : $gray !default;
 
 $wallposts-wallpost-color                                  : $gray-darker !default;
 $wallposts-wallpost-bg-color                               : $white !default;
