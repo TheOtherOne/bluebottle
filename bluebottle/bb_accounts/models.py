@@ -172,7 +172,7 @@ class BlueBottleBaseUser(AbstractBaseUser, PermissionsMixin):
 
     objects = BlueBottleUserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     # Only email and password is required to create a user account but this is how you'd require other fields.
     # REQUIRED_FIELDS = ['first_name', 'last_name']
 
