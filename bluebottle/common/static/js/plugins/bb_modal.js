@@ -76,8 +76,9 @@ BB.ModalMixin = Em.Mixin.create({
             this.send('modalWillTransition', name, 'modalFront', context);
         },
 
-        addRemoveClass: function(type, element, className, attrName, callback, animationEnd) {
-            var i, amountElm = element.length;
+        addRemoveClass: function(type, element, className, attrName, callback) {
+            var i, amountElm = element.length,
+                animationEnd = 'animationEnd animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd';
 
 
             $('.flash-container').one(animationEnd, function(){

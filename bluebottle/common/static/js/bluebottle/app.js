@@ -456,13 +456,12 @@ App.ApplicationRoute = Em.Route.extend(BB.ModalMixin, {
         },
 
         clearFlash: function() {
-            var animationEnd = 'animationEnd animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd',
-                _this = this,
+            var _this = this,
                 callback = function flashClearCallback() {
                     _this.controllerFor('application').set('flash', null);
                 }
 
-            _this.send('addRemoveClass', 'remove', ['.flash', '.flash-container'], ['is-active', 'is-active'], callback, animationEnd);
+            _this.send('addRemoveClass', 'remove', ['.flash', '.flash-container'], ['is-active', 'is-active'], callback);
         },
 
         logout: function () {
