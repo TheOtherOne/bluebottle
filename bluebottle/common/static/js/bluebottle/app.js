@@ -320,7 +320,13 @@ App.Store = DS.Store.extend({
 
 
 DS.Model.reopen({
-    meta_data: DS.attr('object')
+    meta_data: DS.attr('object'),
+
+    typeName: function () {
+        var parts = this.constructor.toString().split('.', 2);
+        if (parts.length > 1) return parts[1].toLowerCase();
+        else return null;
+    }.property()
 });
 
 /* Routing */

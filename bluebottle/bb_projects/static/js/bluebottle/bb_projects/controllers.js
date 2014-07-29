@@ -99,33 +99,6 @@ App.ProjectSearchFormController = Em.ObjectController.extend({
     }
 });
 
-
-App.ProjectController = Em.ObjectController.extend({
-    needs: ['projectIndex'],
-
-    isFundable: function(){
-       return (this.get('status') == '5' && this.get('campaign.money_asked'));
-    }.property('status'),
-
-    allTags: function() {
-        var tags = this.get('plan.tags');
-        return tags.reduce(function(previousValue, tag, index) {
-            var separator = (index == 0 ? " " : ", ");
-            return previousValue + separator + tag.id;
-        }, "");
-    }.property('tags.@each'),
-
-    isProjectOwner: function() {
-        var username = this.get('currentUser.username');
-        var ownername = this.get('model.owner.username');
-        if (username) {
-            return (username == ownername);
-        }
-        return false;
-    }.property('model.owner', 'currentUser.username')
-
-});
-
 App.ProjectPlanController = Ember.ObjectController.extend(BB.ModalControllerMixin, App.StaticMapMixin, {
     counter: 0,
     hasPdfDownload: true,
@@ -165,17 +138,26 @@ App.ProjectSupporterListController = Em.ArrayController.extend({
 
 });
 
-App.ProjectIndexController = Em.ArrayController.extend({
-    needs: ['project'],
+App.ProjectController = Em.ObjectController.extend({
     perPage: 5,
     page: 1,
-    parentId: null,
-    parentType: 'project',
     showingAll: null,
 
+    isFundable: function(){
+       return (this.get('status') == '5' && this.get('campaign.money_asked'));
+    }.property('status'),
+
+    allTags: function() {
+        var tags = this.get('plan.tags');
+        return tags.reduce(function(previousValue, tag, index) {
+            var separator = (index === 0 ? " " : ", ");
+            return previousValue + separator + tag.id;
+        }, "");
+    }.property('tags.@each'),
+
     isProjectOwner: function(){
-        return this.get('controllers.project.owner.username') == this.get('currentUser.username');
-    }.property('controllers.project.model.owner', 'currentUser.username'),
+        return this.get('owner.username') == this.get('currentUser.username');
+    }.property('owner.username', 'currentUser.username'),
 
     remainingItemCount: function(){
         if (this.get('meta.total')) {
@@ -196,7 +178,7 @@ App.ProjectIndexController = Em.ArrayController.extend({
             return (username == ownername);
         }
         return false;
-    }.property('controllers.project.model.owner', 'currentUser.username'),
+    }.property('model.owner', 'currentUser.username'),
 
     availableTasks: function () {
         return this.get('tasks').filter(function(task) {
@@ -212,15 +194,13 @@ App.ProjectIndexController = Em.ArrayController.extend({
 
     resetShowingAll: function() {
         this.set("showingAll", false);
-    }.observes('parentId'),
+    }.observes('id'),
     
     actions: {
         showMore: function() {
             var controller = this;
             var page = this.incrementProperty('page');
-            var parent_id = this.get('parentId');
-            var parent_type = this.get('parentType');
-            App.WallPost.find({'parent_type': parent_type, 'parent_id': parent_id, page: page}).then(function(items){
+            App.WallPost.find({'parent_type': this.get('typeName'), 'parent_id': this.get('id'), page: page}).then(function(items){
                 controller.get('model').pushObjects(items.toArray());
             });
         },

@@ -1,3 +1,30 @@
+App.WallPostControllerMixin = Em.Mixin.create({
+    needs: ['mediaWallPostNew', 'textWallPostNew'],
+    
+    parentModel: Em.K,
+
+    // This way the ArrayController won't hold an immutable array thus it can be extended with more wallposts.
+    setupWallPosts: function() {
+        // Only reload wall-posts if switched to another project.
+        var _this = this,
+            parent = this.get('parentModel'),
+            parentType = parent.get('typeName'),
+            parentId = parent.get('id'),
+            mediaWallPostNewController = this.get('controllers.mediaWallPostNew'),
+            textWallPostNewController = this.get('controllers.textWallPostNew');
+
+        if (_this.get('parentId') != parentId || textWallPostNewController.set('parentType') != parentType){
+            _this.set('page', 1);
+            _this.set('parentId', parentId);
+            _this.set('parentType', parentType);
+
+            var route = this;
+
+
+        }
+    }.observes('parentModel'),
+});
+
 
 App.WallPostController = Em.ObjectController.extend(App.IsAuthorMixin, {
     // Don't show Fundraiser (title/link) on FundRaiser page.

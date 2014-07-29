@@ -7,10 +7,7 @@ App.Router.map(function(){
         this.route('search');
     });
 
-    this.resource('project', {path: '/projects/:project_id'}, function() {
-        this.resource('projectPlan', {path: '/plan'});
-        this.resource('projectTasks', {path: '/tasks'}, function(){});
-    });
+    this.resource('project', {path: '/projects/:project_id'});
 
     this.resource('myProjectList', {path: '/my/projects'});
 
@@ -50,39 +47,28 @@ App.ProjectListIndexRoute = Em.Route.extend(App.UsedCountrySelectViewMixin, {
 });
 
 
-App.ProjectRoute = Em.Route.extend(App.ScrollToTop, {
+App.ProjectRoute = Em.Route.extend(App.WallRouteMixin, App.ScrollToTop, {
     model: function(params) {
         // Crap hack because Ember somehow doesn't strip query-params.
         // FIXME: Find out this -should- work.
-        var project_id = params.project_id.split('?')[0];
-        var page =  App.Project.find(project_id);
-        var route = this;
-        page.on('becameError', function() {
-            route.transitionTo('projectList');
+        var _this = this,
+            project_id = params.project_id.split('?')[0];
+
+        var promise = App.Project.find(project_id).then(function(model) {
+            if (_this.get('tracker')) {
+                _this.get('tracker').trackEvent("Project detail", {"title": model.get('title')});
+            }
+        }, function() {
+            _this.transitionTo('projectList');
         });
         return page;
-    }
-});
-
-
-App.ProjectIndexRoute = Em.Route.extend(App.WallRouteMixin, {
-
-    parentId: function(){
-        return this.modelFor('project').get('id');
-    }.property(),
-    parentType: 'project',
+    },
 
     setupController: function(controller, model) {
         this._super(controller, model);
 
-        var parentType = this.get('parentType');
-        var parent = this.modelFor(parentType);
-        var parentId = parent.id;
-
-        controller.set('tasks',App.Task.find({project: parentId}));
+        controller.set('tasks',App.Task.find({project: model.get('id')}));
     }
-
-
 });
 
 
