@@ -20,10 +20,10 @@ App.PaymentController = Em.ObjectController.extend({
     },
 
     _processPaymentMetadata: function () {
-        // integration_url (at PSP)
-        // integration_method (GET/POST/PUT)
-        // integration_payload (optional metadata required by PSP)
-        // integration_type (redirect/popup)
+        // url (at PSP)
+        // method (GET/POST/PUT)
+        // payload (optional metadata required by PSP)
+        // type (redirect/popup)
         var meta = this.get('model.integrationDetails');
 
         if (meta.type == 'redirect') {
