@@ -59,12 +59,7 @@ App.UserProfileRoute = Em.Route.extend(App.ScrollToTop, {
 
 App.ViewProfileRoute = Em.Route.extend({
     model: function(params) {
-        var model = App.User.find(params.user_id);
-        var route = this;
-        model.on('becameError', function() {
-            route.transitionTo('error.notFound');
-        });
-        return model;
+        return App.User.find(params.user_id);
     }
 });
 
