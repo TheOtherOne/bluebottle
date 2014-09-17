@@ -53,7 +53,7 @@ App.ProjectListIndexRoute = Em.Route.extend(App.UsedCountrySelectViewMixin, App.
 });
 
 
-App.ProjectRoute = Em.Route.extend(App.ScrollToTop, {
+App.ProjectRoute = Em.Route.extend(App.ScrollToTop, App.SeoRouteMixin, {
     model: function(params) {
         // Crap hack because Ember somehow doesn't strip query-params.
         // FIXME: Find out this -should- work.
@@ -75,6 +75,16 @@ App.ProjectRoute = Em.Route.extend(App.ScrollToTop, {
         });
 
         return promise;
+    },
+
+    afterModel: function (model) {
+        this._super();
+
+        var meta = model.get('meta_data');
+        this.set('title', meta.fb_title);
+        this.set('description', meta.description);
+        this.set('image',  meta.image);
+        this.set('url',  meta.url);
     }
 });
 

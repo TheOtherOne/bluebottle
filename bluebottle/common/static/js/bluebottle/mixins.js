@@ -332,3 +332,47 @@ App.GoTo = Ember.Mixin.create({
         }
     }
 });
+
+/*
+  Route Mixin for setting the meta tags details in the page head
+ */
+App.SeoRouteMixin = Ember.Mixin.create({
+    title: null,
+    description: null,
+    image: null,
+    url: null,
+
+    titleChanged: function() {
+        var title;
+        title = this.get('title');
+        if (Em.isEmpty(title)) return;
+        
+        $('head title').text(title);
+        $('head meta[property="og:title"]').text(title);
+    }.observes('title').on('init'),
+  
+    descriptionChanged: function() {
+        var description;
+        description = this.get('description');
+        if (Em.isEmpty(description)) return;
+
+        $('head meta[name="description"]').attr('content', description);
+        $('head meta[property="og:description"]').attr('content', description);
+    }.observes('description').on('init'),
+
+    imageChanged: function() {
+        var image;
+        image = this.get('image');
+        if (Em.isEmpty(image)) return;
+
+        return $('head meta[name="og:image"]').attr('content', image);
+    }.observes('image').on('init'),
+
+    urlChanged: function() {
+        var url;
+        url = this.get('url');
+        if (Em.isEmpty(url)) return;
+
+        return $('head meta[name="og:url"]').attr('content', url);
+    }.observes('url').on('init')
+});
