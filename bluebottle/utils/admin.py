@@ -11,6 +11,11 @@ class LanguageAdmin(admin.ModelAdmin):
 admin.site.register(Language, LanguageAdmin)
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> booking/development-prod
 def export_as_csv_action(description="Export selected objects as CSV file",
                          fields=None, exclude=None, header=True):
     """
