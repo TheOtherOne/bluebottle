@@ -42,6 +42,7 @@
             <!--[if IE]>
             <link rel="stylesheet" href="{% static 'css/ie.css' %}" media="screen" />
             <![endif]-->
+
         {% endblock screen_css %}
     {% endcompress %}
 
@@ -137,6 +138,8 @@
             <script type="text/javascript" src="{% static 'js/bluebottle/mixins.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/controllers.js' %}"></script>
             <script type="text/javascript" src="{% static 'js/bluebottle/views.js' %}"></script>
+            <script type="text/javascript" src="{% static 'js/bluebottle/overrides.js' %}"></script>
+            <script type="text/javascript" src="{% static 'js/bluebottle/components.js' %}"></script>
 
             {#  Tracking modules #}
             {% if MIXPANEL %}
@@ -168,6 +171,12 @@
 
     {% block handlebars_templates %}
         {% include "bluebottle/templates.hbs" %}
+        {% for app in bb_apps %}
+            {% include app|add:"/base.hbs" %}
+        {% endfor %}
+        {% include "bluebottle/components.hbs" %}
+        {% include "bluebottle/footer.hbs" %}
+        {% include "bluebottle/not_allowed.hbs" %}
     {% endblock handlebars_templates %}
 
     <script src="//maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=false"></script>
@@ -179,14 +188,106 @@
         <a {{action "selectLanguage" view.content.code}}{{bindAttr title=view.content.name}}>{{ view.content.code }}</a>
     {% endtplhandlebars %}
 
+    {% tplhandlebars "application" %}
+
+    <!-- global site -->
+        <div id="main">
+
+            <!-- global header -->
+            <div id="header" class="l-section">
+                <header class="l-wrapper">
+
+                    <!-- logo -->
+                    <div id="logo">
+                        {% block_verbatim nav_logo %}
+                            {{#link-to 'home' class="logo-link"}}
+                                <object type="image/svg+xml" data="{% static "images/img/1procentclub.svg" %}" class="logo-image"></object>
+                            {{/link-to}}
+                        {% endblock_verbatim %}
+                    </div>
+                    <!-- end: logo -->
+
+                    <!-- main navigation -->
+                    <nav id="nav">
+
+                        {% block_verbatim nav_main %}
+                            <ul class="nav-main">
+                                <li class="nav-main-item"><a {{action 'showPage' 'about'}} href="/#!/pages/about">{% blocktrans %}About 1%Club{% endblocktrans %}</a></li>
+
+                                {% if 'projects' in bb_apps %}
+                                    {% block_verbatim nav_main_projects %}
+                                        <li class="nav-main-item">
+                                            {{#link-to 'projectList'}}
+                                                {% blocktrans %}Projects{% endblocktrans %}
+                                            {{/link-to}}
+                                        </li>
+                                    {%  endblock_verbatim %}
+                                {% endif %}
+
+                                {% if 'tasks' in bb_apps %}
+                                    {% block_verbatim nav_main_tasks %}
+                                        <li class="nav-main-item">
+                                            {{#link-to 'taskList'}}
+                                                {% trans "Tasks" %}
+                                            {{/link-to}}
+                                        </li>
+                                    {%  endblock_verbatim %}
+                                {% endif %}
+
+                            </ul>
+                        {%  endblock_verbatim %}
+
+                        {% include "bb_accounts/nav.hbs" %}
+                    </nav>
+                    <!-- end: main navigation -->
+
+                    
+                </header>
+                
+                {{#if display_message}}
+
+                    <div {{bindAttr class=":message l-full isError"}}>
+                        <a {{ action 'hideMessage' }} class="message-close" rel="close">&times;</a>
+
+                        <div class="message-title">
+                            {{ message_title }}
+                        </div>
+
+                        <div class="message-content">
+                            {{ message_content }}
+                        </div>
+                    </div>
+
+                {{/if}}
+            </div>
+
+            <!-- end: main header -->
+
+            <!-- main content -->
+            <div id="content">
+                {{outlet}}
+            </div>
+            <!-- end: main content -->
+
+        </div>
+        {{partial "footer"}}
+
+    {% endtplhandlebars %}
+
+
+
+>>>>>>> origin/booking/development-prod
 </head>
 <body id="body">
     <!-- Scripts -->
     <div id="fb-root"></div>
 
+<<<<<<< HEAD
 
 
   {% block google_analytics %}
+=======
+    {% block google_analytics %}
         <script type="text/javascript">
           var _gaq = _gaq || [];
             {% if ANALYTICS_CODE %}
@@ -197,8 +298,13 @@
                 )();
             {%  endif %}
         </script>
+<<<<<<< HEAD
   {% endblock %}
   
+=======
+    {% endblock %}
+    
+>>>>>>> origin/booking/development-prod
     <!--[if lte IE 9]>
         <script type="text/javascript" src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
