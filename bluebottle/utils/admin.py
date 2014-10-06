@@ -3,15 +3,11 @@ from .models import Language
 import csv
 from django.http import HttpResponse
 
-
 class LanguageAdmin(admin.ModelAdmin):
     model = Language
     list_display = ('code', 'language_name', 'native_name')
 
 admin.site.register(Language, LanguageAdmin)
-
-
-
 
 def export_as_csv_action(description="Export selected objects as CSV file",
                          fields=None, exclude=None, header=True):

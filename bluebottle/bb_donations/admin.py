@@ -1,3 +1,4 @@
+from bluebottle.utils.admin import export_as_csv_action
 import re
 from bluebottle.payments.models import OrderPayment
 from bluebottle.utils.model_dispatcher import get_donation_model
@@ -9,7 +10,7 @@ DONATION_MODEL = get_donation_model()
 
 class DonationAdmin(admin.ModelAdmin):
     date_hierarchy = 'updated'
-    list_display = ('updated', 'project', 'user', 'user_full_name', 'amount', 'related_payment_method', 'status')
+    list_display = ('created', 'project', 'fundraiser', 'user', 'amount', 'status')
     list_filter = ('order__status', )
     ordering = ('-updated', )
     raw_id_fields = ('project', 'fundraiser')
@@ -44,6 +45,8 @@ class DonationAdmin(admin.ModelAdmin):
     user.short_description = 'Employee email address'
     related_payment_method.short_description = 'Payment Provider and Method'
 
+    export_fields = ['project', 'user', 'fundraiser', 'amount', 'updated', 'ready', 'status', 'type']
+    actions = (export_as_csv_action(fields=export_fields), )
 
     def order_link(self, obj):
         object = obj.order
