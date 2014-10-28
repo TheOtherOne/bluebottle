@@ -2,9 +2,9 @@
   "name": "bluebottle",
   "description": "The crowdsourcing framework initiated by the 1%Club",
   "version": "1.1.7",
-  "author": "",
+  "author": "1%Club",
   "license": "BSD-3-Clause",
-  "private": true,
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git://github.com/onepercentclub/bluebottle.git"
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "growly": "~1.1.1",
+    "grunt": "^0.4.5",
     "grunt-concurrent": "^0.5.0",
     "grunt-es6-module-transpiler": "~0.6.0",
     "grunt-karma": "~0.8.3",
@@ -49,11 +50,12 @@
     "karma-spec-reporter": "0.0.13",
     "phantomjs": "~1.9.7-10",
     "qunitjs": "~1.14.0",
-    "sinon": "^1.10.3",
+    "sinon": "^1.11.1",
     "sinon-qunit": "^2.0.0"
   },
   "scripts": {
     "build": "grunt build",
-    "test": "grunt karma:unit"
+    "test": "grunt karma:unit",
+    "postinstall": "bower install"
   }
 }
