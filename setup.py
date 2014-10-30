@@ -72,6 +72,7 @@ dependency_links = [
 
 tests_require = [
     'South==0.8.1',
+    'bunch==1.0.1',
     'coverage==3.6',
     'django-nose',
     'django-admin-tools==0.5.1',
