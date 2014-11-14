@@ -174,7 +174,9 @@ App.UserSettings = DS.Model.extend({
     birthdate: DS.attr('birthdate'),
     user_type: DS.attr('string'),
     primary_language: DS.attr('string'),
-    address: DS.belongsTo('App.UserAddress')
+    address: DS.belongsTo('App.UserAddress'),
+    campaign_notifications: DS.attr('boolean'),
+
 });
 
 App.UserAddress = DS.Model.extend({

@@ -104,7 +104,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
         model = BB_USER_MODEL
         # TODO: Add password update using password field.
         # TODO: Facebook connect
-        fields = ('id', 'email', 'share_time_knowledge', 'share_money',
+        fields = ('id', 'email', 'share_time_knowledge', 'share_money', 'campaign_notifications',
                   'newsletter', 'gender', 'birthdate', 'user_type', 'primary_language')
 
 
