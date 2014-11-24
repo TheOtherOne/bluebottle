@@ -348,13 +348,13 @@ class SeleniumTestCase(LiveServerTestCase):
         self.scroll_to_and_click_by_css("a[name=login]")
 
         # Wait for modal animation to complete
-        self.wait_for_not_element_css('.modal-fullscreen-background')
+        time.sleep(1)
 
         return self.wait_for_element_css(".nav-member", timeout=wait_time)
 
     def logout(self):
         self.visit_path("/logout")
-        return self.wait_for_element_css('.nav-signup-login')
+        self.assert_css('.nav-signup-login', wait_time=10)
 
     def visit_path(self, path, lang_code=None):
         """
@@ -387,7 +387,7 @@ class SeleniumTestCase(LiveServerTestCase):
         self.visit_path('', lang_code)
 
         # Check if the homepage opened, and the dynamically loaded content appeared.
-        return self.browser.is_text_present('2013 Bluebottle', wait_time=10)
+        return self.assert_css('#home', wait_time=10)
 
     def assertDatePicked(self):
         # Focus input to make the date picker popup open
