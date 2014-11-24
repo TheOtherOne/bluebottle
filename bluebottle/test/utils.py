@@ -304,7 +304,7 @@ class SeleniumTestCase(LiveServerTestCase):
         else:
             cls.browser = BrowserExt(settings.SELENIUM_WEBDRIVER, wait_time=30)
 
-        cls.browser.driver.implicitly_wait(30)
+        cls.browser.driver.implicitly_wait(2)
         cls.browser.driver.set_page_load_timeout(30)
 
         super(SeleniumTestCase, cls).setUpClass()
@@ -445,22 +445,20 @@ class SeleniumTestCase(LiveServerTestCase):
     # will not assert true until the element is fully visible, eg opacity is also 1.
     def wait_for_element_css(self, selector, timeout=30):
         wait = WebDriverWait(self.browser.driver, timeout)
-        try:
-            element = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        element = wait.until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, selector))
+        )
 
-            return element
-        except TimeoutException:
-            return None
+        return element
 
     def wait_for_not_element_css(self, selector, timeout=30):
         """
         Wait for an element with this css to disappear.
         """
         wait = WebDriverWait(self.browser.driver, timeout)
-        try:
-            wait.until(lambda s: len(s.find_elements(By.CSS_SELECTOR, selector)) == 0)
-        except TimeoutException:
-            return None
+        wait.until(
+            EC.invisibility_of_element_located((By.CSS_SELECTOR, selector))
+        )
 
     def wait_for_toast_to_disappear(self):
         # Wait until the toast message disappears.
