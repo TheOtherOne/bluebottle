@@ -6,7 +6,7 @@ from rest_framework import serializers
 from bluebottle.bb_accounts.serializers import UserPreviewSerializer
 from bluebottle.bluebottle_drf2.serializers import (
     OEmbedField, PolymorphicSerializer, ContentTextField, PhotoSerializer)
-from bluebottle.utils.model_dispatcher import get_project_model, get_fundraiser_model
+from bluebottle.utils.model_dispatcher import get_project_model, get_fundraiser_model, get_donation_model
 
 from .models import (
     WallPost, SystemWallPost, MediaWallPost, TextWallPost, MediaWallPostPhoto,
@@ -14,6 +14,7 @@ from .models import (
 
 PROJECT_MODEL = get_project_model()
 FUNDRAISER_MODEL = get_fundraiser_model()
+DONATION_MODEL = get_donation_model()
 
 
 class WallPostListSerializer(serializers.Field):
@@ -64,6 +65,9 @@ class WallPostContentTypeField(serializers.SlugRelatedField):
             data = ContentType.objects.get_for_model(PROJECT_MODEL).model
         if data == 'fund raiser':
             data = ContentType.objects.get_for_model(FUNDRAISER_MODEL).model
+        if data == 'donation':
+            print "DONATIOOOOOOOON"
+            return ContentType.objects.get_for_model(DONATION_MODEL)
         return super(WallPostContentTypeField, self).from_native(data)
 
 

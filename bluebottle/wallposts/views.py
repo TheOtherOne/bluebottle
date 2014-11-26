@@ -17,6 +17,7 @@ from .serializers import ReactionSerializer, WallPostSerializer
 PROJECT_MODEL = get_project_model()
 FUNDRAISER_MODEL = get_fundraiser_model()
 
+
 class WallPostFilter(django_filters.FilterSet):
     parent_type = django_filters.CharFilter(name="content_type__name")
     parent_id = django_filters.NumberFilter(name="object_id")
@@ -40,7 +41,7 @@ class WallPostList(ListAPIView):
         if parent_type == 'project':
             content_type = ContentType.objects.get_for_model(PROJECT_MODEL)
         else:
-            white_listed_apps = ['projects', 'tasks', 'fundraisers']
+            white_listed_apps = ['projects', 'tasks', 'fundraisers', 'donations']
             content_type = ContentType.objects.filter(app_label__in=white_listed_apps).get(name=parent_type)
         queryset = queryset.filter(content_type=content_type)
 

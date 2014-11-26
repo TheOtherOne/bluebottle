@@ -28,6 +28,9 @@
                         <abbr class="timestamp">{{localize donation.created formatting='X'}}</abbr>
                     </span>
                 {{/if}}
+                <div class="donation-wallpsots">
+                    {{bb-wallpost-list parentId=donation.id parentType='donation' currentUser=currentUser}}
+                </div>
             </li>
         {{/each}}
     </ul>

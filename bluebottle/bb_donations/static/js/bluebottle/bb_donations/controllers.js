@@ -75,22 +75,19 @@ App.DonationSuccessController = Em.ObjectController.extend({});
 // DonationWallPostController extends the TextWallPostNewController as the main
 // functionality of the controller is to allow the user to post the the
 // project/fundraiser wall.
-App.DonationWallPostController = App.TextWallPostNewController.extend(BB.ModalControllerMixin, {
-    needs: ['donationSuccess', 'projectIndex', 'fundraiserIndex'],
+App.DonationWallPostController = Em.ObjectController.extend(BB.ModalControllerMixin, {
+    needs: ['donationSuccess'],
 
-    parentType: function(){
-        if (this.get('controllers.donationSuccess.fundraiser')) return 'fundraiser';
-
-        return 'project';
-    }.property('controllers.donationSuccess.fundraiser'),
+    parentType: 'donation',
 
     parentId: function(){
-        if (this.get('controllers.donationSuccess.fundraiser')) {
-            return this.get('controllers.donationSuccess.fundraiser.id');
-        }
+        return this.get('controllers.donationSuccess.id');
+    }.property('controllers.donationSuccess.id'),
 
-        return this.get('controllers.donationSuccess.project.id');
-    }.property('controllers.donationSuccess.fundraiser.id', 'controllers.donationSuccess.project.id'),
+    init: function(){
+        this._super();
+        this.createNewWallPost();
+    },
 
     createNewWallPost: function(){
         var parent_type = this.get('parentType');

@@ -126,7 +126,8 @@
                             <h2 class="activity-title">{% trans "Supporters" %}</h2>
                         </header>
 
-                        {{project-donations class="project-supporters" donations=projectDonations limit=10 showProfile="showProfile"}}
+                        {{project-donations class="project-supporters" donations=projectDonations limit=10
+                                showProfile="showProfile" currentUser=currentUser}}
 
                         <footer class="activity-footer">
                             <a {{action 'addDonation' this}}  class="activity-action">
